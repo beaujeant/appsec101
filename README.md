@@ -50,7 +50,7 @@ Everybody has its own preference for learning, e.g. reading, listening, visualiz
 
 ## How to contribute
 
-I’d be more than happy to hear your feedback for improvement in both _substance_ and _form_. If you see any, feel free to report it via the GitHub [issue page](https://github.com/beaujeant/beaujeant.github.io/issues) or via [pull requests](https://github.com/beaujeant/beaujeant.github.io/pulls). I’m not a native English speaker, so this means there are probably lots of typos, repetitions and weird turns of phrase. Furthermore, as mentioned previously, I’m not an expert in binary security, so the content of this course might be inaccurate or maybe even incorrect. While sometimes, I’m inaccurate on purpose for the sake of simplicity, I did my best to avoid any incorrect statement and/or explanation. I created that course for educational purpose and would feel terrible if it actually misinformed its audience instead. So I would really appreciate if you could help me identifying erroneous content and improve this course.
+I’d be more than happy to hear your feedback for improvement in both _substance_ and _form_. If you see any, feel free to report it via the GitHub [issue page](https://github.com/beaujeant/appsec101/issues) or via [pull requests](https://github.com/beaujeant/appsec101/pulls). I’m not a native English speaker, so this means there are probably lots of typos, repetitions and weird turns of phrase. Furthermore, as mentioned previously, I’m not an expert in binary security, so the content of this course might be inaccurate or maybe even incorrect. While sometimes, I’m inaccurate on purpose for the sake of simplicity, I did my best to avoid any incorrect statement and/or explanation. I created that course for educational purpose and would feel terrible if it actually misinformed its audience instead. So I would really appreciate if you could help me identifying erroneous content and improve this course.
 
 ## References
 
@@ -62,5 +62,3 @@ I’d be more than happy to hear your feedback for improvement in both _substanc
 * [issue page](https://github.com/beaujeant/beaujeant.github.io/issues) https://github.com/beaujeant/beaujeant.github.io/issues
 * [pull requests](https://github.com/beaujeant/beaujeant.github.io/pulls) https://github.com/beaujeant/beaujeant.github.io/pulls
 * 
-
-
