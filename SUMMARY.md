@@ -5,4 +5,5 @@
 * [Memory](memory.md)
 * [Lab environment](lab-environment.md)
 * [Programming](programming.md)
+* [Assembly](assembly.md)
 
