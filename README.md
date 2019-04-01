@@ -61,4 +61,3 @@ I’d be more than happy to hear your feedback for improvement in both _substanc
 * [@beaujeant](https://twitter.com/beaujeant) https://twitter.com/beaujeant
 * [issue page](https://github.com/beaujeant/beaujeant.github.io/issues) https://github.com/beaujeant/beaujeant.github.io/issues
 * [pull requests](https://github.com/beaujeant/beaujeant.github.io/pulls) https://github.com/beaujeant/beaujeant.github.io/pulls
-* 
