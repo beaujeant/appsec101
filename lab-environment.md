@@ -43,6 +43,37 @@ sudo apt-get install virtualbox-guest-additions-iso
 
 Now, let’s install the VirtualBox Guest Addition. This will allow you to copy/paste from the host to the VM, which will come handy to copy the source code for instance. For this, you simply need to go in the VirtualBox menu “Devices” and select “Install Guest Additions CD image…”. Then, you just need to follow the instructions. At the end of the process, go in the VirtualBox menu “Machine” and select “Settings…”. In the tab “General” &gt; “Advanced”, set the “Shared Clipboard” value to “Bidirectional”. You now should be able to copy/paste from the VM to your host and vice-versa.
 
+Finally, we want to disable **A**ddress **S**pace **L**ayout **R**andomization \(ASLR\) on our VM. **ASLR** is a security mechanism that makes it more complicate to exploit memory corruption vulnerabilities such as _buffer overflow_ or _format string_. When ASLR is activated on your operating system, the process responsible for loading the executable into memory will place  key data areas \(e.g. stack, heap and libraries\) in unpredictable location. We will see later in chapter buffer overflow the impact of ASLR.
+
+ASLR can be configured with the file `/proc/sys/kernel/randomize_va_space`. When the file contains `0`, this means ASLR is disabled, when it contains `1` or `2`, ASLR is enabled.
+
+```text
+$ cat /proc/sys/kernel/ramdomize_va_space
+2
+```
+
+You can use a text editor and change the content to `0` to disable ASLR, however, the value will be reset to `2` after the next boot. To change the configuration permantly, you can add the following line in the file `/etc/sysctl.conf`:
+
+{% code-tabs %}
+{% code-tabs-item title="/etc/sysctl.conf" %}
+```text
+kernel.randomize_va_space = 0
+```
+{% endcode-tabs-item %}
+{% endcode-tabs %}
+
+You will need sudo privileges to add that line:
+
+```text
+$ echo "kernel.randomize_va_space = 0" | sudo tee -a /etc/sysctl.conf
+```
+
+Once done, you will need to run the following command to take the changes into effect:
+
+```text
+$ sudo sysctl -p
+```
+
 ## Tools
 
 For this course, we only need 2 tools: **GDB** and **GCC**. Both tools are already pre-installed in Ubuntu Desktop.
@@ -121,6 +152,17 @@ This will compile `mul.c` and create the binary application `mul`. Now, in order
 ```text
 $ ./mul
 ```
+
+When compiling vulnerable source code for buffer overflow examples, we will also need to remove the **stack protector** \(also known as **canary**\) added by default with GCC. The stack protector is a mechanism that verify if some specific memory areas haven't been altered during execution. To disable the stack protector, we need to use `-fno-stack-protector` as argument with GCC:
+
+```text
+$ gcc mul.c -o mul -fno-stack-protector
+$ ./mul
+```
+
+{% hint style="info" %}
+We will see later in chapter buffer overflow how the stack protector works and make it more complicate the exploitation of buffer overflow.
+{% endhint %}
 
 ### GDB
 

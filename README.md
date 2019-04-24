@@ -54,10 +54,11 @@ I’d be more than happy to hear your feedback for improvement in both _substanc
 
 ## References
 
-* \[[1](https://en.wikipedia.org/wiki/Web_application)\] https://en.wikipedia.org/wiki/Web\_application
-* \[[2](https://en.wikipedia.org/wiki/Vulnerability_%28computing%29)\] https://en.wikipedia.org/wiki/Vulnerability\_%28computing%29
-* [CIA](https://en.wikipedia.org/wiki/Information_security#Key_concepts) https://en.wikipedia.org/wiki/Information\_security\#Key\_concepts
-* [i386](https://en.wikipedia.org/wiki/Intel_80386) https://en.wikipedia.org/wiki/Intel\_80386
-* [@beaujeant](https://twitter.com/beaujeant) https://twitter.com/beaujeant
-* [issue page](https://github.com/beaujeant/beaujeant.github.io/issues) https://github.com/beaujeant/beaujeant.github.io/issues
-* [pull requests](https://github.com/beaujeant/beaujeant.github.io/pulls) https://github.com/beaujeant/beaujeant.github.io/pulls
+* \[[1](https://en.wikipedia.org/wiki/Web_application)\] [https://en.wikipedia.org/wiki/Web\_application](https://en.wikipedia.org/wiki/Web_application)
+* \[[2](https://en.wikipedia.org/wiki/Vulnerability_%28computing%29)\] [https://en.wikipedia.org/wiki/Vulnerability\_\(computing\)](https://en.wikipedia.org/wiki/Vulnerability_%28computing%29)
+* [CIA](https://en.wikipedia.org/wiki/Information_security#Key_concepts) [https://en.wikipedia.org/wiki/Information\_security\#Key\_concepts](https://en.wikipedia.org/wiki/Information_security#Key_concepts)
+* [i386](https://en.wikipedia.org/wiki/Intel_80386) [https://en.wikipedia.org/wiki/Intel\_80386](https://en.wikipedia.org/wiki/Intel_80386)
+* [@beaujeant](https://twitter.com/beaujeant) [https://twitter.com/beaujeant](https://twitter.com/beaujeant)
+* [issue page](https://github.com/beaujeant/beaujeant.github.io/issues) [https://github.com/beaujeant/beaujeant.github.io/issues](https://github.com/beaujeant/beaujeant.github.io/issues)
+* [pull requests](https://github.com/beaujeant/beaujeant.github.io/pulls) [https://github.com/beaujeant/beaujeant.github.io/pulls](https://github.com/beaujeant/beaujeant.github.io/pulls)
+

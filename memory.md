@@ -13,7 +13,7 @@ So memory is the place where the data is stored. As we’ve seen in the chapter 
 
 The translation between a code written in programming language, such as C, and machine instructions is done by a **compiler**. Once the code compiled, you get one \(or more\) _object\(s\)_. An _object_ on its own cannot do much; the operating system doesn’t know what to do with it. That’s why after compilation, the **linker** will put the objects together and generates a binary application packed in a specific file format so that whenever you run the file \(double-click on the icon or execute in a terminal\), the operating system knows how to load the program in memory and where to start \(first instruction\).
 
-The two most known application formats are **ELF** \(Executable and Linkable Format\) for _Linux_application and **PE** \(Portable Executable\) for _Windows_ application. _ELF_ and _PE_ formats are different but still share common main features. The loading process of an application is quite similar from Windows to Linux, therefore, this course will stay generic and give an overview of the process in general.
+The two most known application formats are **ELF** \(Executable and Linkable Format\) for _Linux_ application and **PE** \(Portable Executable\) for _Windows_ application. _ELF_ and _PE_ formats are different but still share common main features. The loading process of an application is quite similar from Windows to Linux, therefore, this course will stay generic and give an overview of the process in general.
 
 The executable \(ELF or PE file\) contains \(among others\) the following parts:
 
@@ -29,9 +29,11 @@ The executable \(ELF or PE file\) contains \(among others\) the following parts:
 Program can be compiled with static libraries or dynamic/shared libraries. Shared library means the code of imported functions reside in different libraries/files \(as we’ve seen with the import table\). Whilst static library means the actual code of imported functions is copied in the program itself so that the program doesn’t rely on different libraries/files \(the import table is thus empty\). \[[4](https://medium.com/@StueyGK/static-libraries-vs-dynamic-libraries-af78f0b5f1e4)\]
 {% endhint %}
 
-Once you run an application, the operating system will first allocate some space in memory to load the application. Since we are working with a 32-bit computer, the program can only access address in memory that fit within 32 bits \(due to the design of the CPU \[[5](https://www.brianmadden.com/opinion/The-4GB-Windows-Memory-Limit-What-does-it-really-mean)\]\), i.e. between `00000000000000000000000000000000` \(0\) and `11111111111111111111111111111111` \(4,294,967,295\). So by default, whenever you run an application, the operating system allocate 4GB \(4,294,967,295\) of _virtual memory_ for that application. It is important to understand the concept of virtual memory. The Operating System won’t be able to allocate 4GB in RAM for each application. First of all, because most computers won’t have enough memory to run more than 3 applications \(including the OS\) at the same time, but also because some data should be shared across all applications. So _virtual memory_is rather an abstraction of the actual memory \(RAM\) where the data is actually stored in non-consecutive areas of the memory and storage. This is a huge advantage for applications so that they don’t have to take into consideration how to distribute the data across the RAM and keep track where is what. Instead, applications see one unique continuous block of memory and let the operating system deal with the translation to the actual location of the data in RAM.
+## Memory address
 
-![Virtual memory](https://beaujeant.github.io/AppSec101/resources/images/virtual_memory.png)
+Once you run an application, the operating system will first allocate some space in memory to load the application. Since we are working with a 32-bit computer, the program can only access address in memory that fit within 32 bits \(due to the design of the CPU \[[5](https://www.brianmadden.com/opinion/The-4GB-Windows-Memory-Limit-What-does-it-really-mean)\]\), i.e. between `00000000000000000000000000000000` \(0\) and `11111111111111111111111111111111` \(4,294,967,295\). So by default, whenever you run an application, the operating system allocate 4GB \(4,294,967,295\) of _virtual memory_ for that application. It is important to understand the concept of _virtual memory_. The Operating System won’t be able to allocate 4GB in RAM for each application. First of all, because most computers won’t have enough memory to run more than 3 applications \(including the OS\) at the same time, but also because some data should be shared across all applications. So _virtual memory_ is rather an abstraction of the physical memory \(RAM\) where the data is actually stored in non-consecutive areas. This is a huge advantage for applications so that they don’t have to take into consideration how to distribute the data across the RAM and keep track where is what. Instead, applications see one unique continuous block of memory and let the operating system deal with the translation to the actual location of the data in RAM.
+
+![Virtual memory](.gitbook/assets/virtual_memory.png)
 
 Once the memory allocated, the OS \(actually the _dynamic linker_\) will map the binary application in memory according to its mapping table then load the libraries. Once done, the execution of the program starts at the _entry point_.
 
@@ -71,15 +73,17 @@ Key to Flags:
 
 In this example, once the dynamic linker has allocated the 4G of virtual memory, the section _.text_ of `/bin/ls` will be copied at the address `0x08049df0`.
 
+Memory location are addressed in bytes \(8 bits\). This means the address `0x00000000` is pointing to the first byte in memory, the address `0x00000001` is pointing to the second byte \(or 9th bit\) in memory, etc.  Reading or writing from/to a speicifc memory location could means 1, 2 or 4 bytes depending on insturction, but the given address will be always pointing to one byte in memory.
+
 ## Memory layout
 
 Now that the program is running, we have the binary file as well as the libraries mapped in the virtual memory, but that’s not all. We also need memory space for local variables, dynamically allocated memory blocks, and OS related memory. All this is also in the virtual memory in specific areas.
 
-![Linux memory layout](https://beaujeant.github.io/AppSec101/resources/images/linux_memory_layout.png)
+![Linux memory layout](.gitbook/assets/linux_memory_layout.png)
 
 In this diagram, the lowest memory \(smallest memory address\) is at the bottom and the highest at the top. However, some people prefer to represent the memory the other way round, i.e. starting with the lowest memory at the top.
 
-![Linux memory layout inverted](https://beaujeant.github.io/AppSec101/resources/images/linux_memory_layout_inv.png)
+![Linux memory layout inverted](.gitbook/assets/linux_memory_layout_inv.png)
 
 I personally prefer this representation \(lowest at the top\) because later when using _debuggers_, memory areas are usually represented in that order.
 
@@ -171,20 +175,20 @@ This code is a simple multiplier that only uses addition as mathematical operati
 
 In this example, the function `main()` calls the function `mul()`, and the function `mul()` calls the function `add()` multiple times.
 
-![Function calls](https://beaujeant.github.io/AppSec101/resources/images/function_calls.png)
+![Function calls](.gitbook/assets/function_calls.png)
 
 Each function has its own stack frame. Whenever `main()` calls `mul()`, a new stack frame is added on top of the current one. A stack frame can grow and reduce with temporary local variables. A stack frame is usually structured as follow:
 
 * Function arguments: When a function is called, it generally receives arguments, e.g. in the call `mul(4,3)`, the first argument is `4` and the second argument is `3`. In this example, arguments are integers, but this could be any data \(float, string, etc\).
-* Return address: We will see it later in chapter assembly, but basically, whenever a function is called, the CPU jump to a different of the memory where the instruction of the called function is located. At the end of the function, the CPU needs to return at the instruction right after the initial call of the function. In order to know where to return, the address is saved in the stack.
+* Return address: We will see it later in chapter assembly, but basically, whenever a function is called, the CPU jump to a different address in memory where the instruction of the called function is located. At the end of the function, the CPU needs to return at the instruction right after the initial call of the function. In order to know where to return, the address is saved in the stack.
 * Stack base pointer of the callee function: The base pointer point to the beginning of the stack frame. Oddly enough, the base pointer doesn’t point exactly at the beginning of the frame but rather the beginning of the local variable.
 * Local variables: When local variables are initialized, those are actually located in the stack. So for instance, if you have `int a;`, it allocated 4 bytes in the stack for the variable `a`.
 
-![Stack frame](https://beaujeant.github.io/AppSec101/resources/images/stack.gif)
+![Stack frame](.gitbook/assets/stack.gif)
 
 We will see more examples with the stack in the chapter assembly.
 
-#### Heap <a id="heap"></a>
+### Heap
 
 The heap is a region in memory where **dynamically allocated variables** are stored. Variables are areas in memory that are allocated to store their contents. There are three ways to allocate memory for a variable:
 
@@ -214,7 +218,7 @@ Four functions are used to manage the memory in the heap:
 
 Source: [malloc](http://www.cplusplus.com/reference/cstdlib/malloc/), [calloc](http://www.cplusplus.com/reference/cstdlib/calloc/), [realloc](http://www.cplusplus.com/reference/cstdlib/realloc/) and [free](http://www.cplusplus.com/reference/cstdlib/free/)
 
-![Heap allocation](https://beaujeant.github.io/AppSec101/resources/images/heap.gif)
+![Heap allocation](.gitbook/assets/heap.gif)
 
 ### Imported libraries
 
@@ -378,7 +382,7 @@ The purpose of the first four registers \(`AX`, `CX`, `DX` and `BX`\) can be int
 
 All registers can be accessed in 16-bit and 32-bit modes. In 16-bit mode, the register is identified by its two-letter abbreviation from the list above. In 32-bit mode, this two-letter abbreviation is prefixed with an `E` \(extended\). For example, `EAX` is the accumulator register as a 32-bit value. It is also possible to address the first four registers \(`AX`, `CX`, `DX` and `BX`\) in their size of 16-bit as two 8-bit halves. The least significant byte \(LSB\), or low half, is identified by replacing the `X` with an `L`. The most significant byte \(MSB\), or high half, uses an `H` instead. For example, `CL` is the least-significant bits \(LSB\) of the counter register \(`CX`\), whereas `CH` is its most-significant bits \(MSB\). \[[17](https://en.wikibooks.org/wiki/X86_Assembly/X86_Architecture#x86_Architecture)\].
 
-![Global-Purpose Registers](https://beaujeant.github.io/AppSec101/resources/images/gpr.png)
+![Global-Purpose Registers](.gitbook/assets/gpr.png)
 
 ### Instruction Pointer
 
@@ -388,7 +392,7 @@ The **I**​nstruction **P**​ointer \(EIP\) register contains the address of t
 
 Initially called FLAGS on 16-bit architectures, then later EFLAGS on 32-bit architectures, the flags register is a special register where each bit represent a boolean value for a specific flag. Flags are automatically set by the CPU after specific operations.
 
-![EFLAGS](https://beaujeant.github.io/AppSec101/resources/images/eflags.png)
+![EFLAGS](.gitbook/assets/eflags.png)
 
 {% hint style="info" %}
 _Res_ flags are reserved for future use.

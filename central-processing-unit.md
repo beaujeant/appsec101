@@ -10,13 +10,13 @@ Operations have one or two parameters – also known as operands \(e.g. `5 + 2` 
 
 Operation parameter\(s\) sometimes might come from **inputs** \(e.g. the keyboard, the mouse or a temperature sensor\). Once the operation is done, we usually want to **output** the final result somewhere \(e.g. print it on the screen, play the music on speakers or send it to the network\). The **control unit** is responsible for dealing with inputs and output \(I/O\).
 
-![CPU-Memory-I/O](https://beaujeant.github.io/AppSec101/resources/images/cpu-memory-io.png)
+![CPU - Memory - I/O](.gitbook/assets/cpu-memory-io.png)
 
 As you can see, the **control unit** is doing a lot in the CPU. It orchestrates the four elements \(i.e. memory, the arithmetic unit, input, and output\) and routes the data across them. The control unit doesn’t magically work on its own. It needs instructions to follow. Instructions such as “take the value located here in memory and send it to the arithmetic unit to execute the following operation”. Those sequences of instruction are the program itself. Whenever a programmer compiles code, they actually create a binary application that contains a list of CPU instructions that the control unit will execute. When the program is running, instructions are loaded in memory and read by the control unit. Once executed, the control unit will look at the instruction located right after in memory – unless the instruction executed redirected the execution flow somewhere else \(with a jump for instance\).
 
 Now, let’s focus on the **arithmetic unit** and its principal component: the **A**​rithmentic **L**​ogic **U**​nit \(ALU\). ALU can be represented as follow:
 
-![ALU](https://beaujeant.github.io/AppSec101/resources/images/alu.png)
+![ALU](.gitbook/assets/alu.png)
 
 It has four inputs \(_input A_, _input B_, _command_ and the _status_\) and two outputs \(_output_ and _status output_\):
 
@@ -28,7 +28,7 @@ It has four inputs \(_input A_, _input B_, _command_ and the _status_\) and two 
 
 For instance, the `9 + 33` would represented as follow:
 
-![Addition](https://beaujeant.github.io/AppSec101/resources/images/addition.png)
+![Addition](.gitbook/assets/addition.png)
 
 {% hint style="info" %}
 The input status has been removed because it was not relevant in this example.
@@ -187,7 +187,7 @@ So, why using base 16 and not 10 you may ask. There are multiple reasons but the
 * It is easier to convert a binary number in hexadecimal and the other way around. Four binary values can always be represented with one hexadecimal value. So this means if you want to convert from hexadecimal to binary, you first need to chunk the number character by character and convert them in their respective 4 binary values.
 * This is related to the first reason, but hexadecimal value aligns with its binary equivalent. For instance, the number 9 \(decimal\) is 1001 in binary. One symbol in decimal for four symbols in binary. Now the number 12 \(decimal\) is 1100 in binary. Two symbols in decimal but still four symbols in binary. Now 18 \(decimal\) is 10010 in binary. Two symbols in decimal and 5 in binary. All this long example to explain that there is not a direct correlation with the amount a symbol in decimal and binary. However, since both hexadecimal and binary are bases that are powers of 2, it all aligns. 1-4 symbols in binary will always be 1 symbol in hexadecimal. 5-8 symbols in binary will always be 2 symbols in hexadecimal, etc.
 
-![Bin to Hex](https://beaujeant.github.io/AppSec101/resources/images/bin-hex.gif)
+![Binary to Hexadecimal](.gitbook/assets/bin-to-hex.gif)
 
 This might not seem interesting at first sight, but with experience, you will notice hexadecimal comes handy.
 
@@ -199,7 +199,7 @@ Hex \(short for hexadecimal\) values are usually represented with a leading `0x`
 
 Now that we covered binary and hexadecimal, let’s discuss data type. This course covers 32-bit architecture. This means the memory addresses and registers \(see in the chapter [memory](memory.md)\) are 32-bits long. 32-bits long data is called a **double word** – also known as **long word**. A **word** is thus 16 bits, and a **byte** – also known as **octet** – is 8 bits. Those are type name for data of a specific size \(in bits\).
 
-![Data types](https://beaujeant.github.io/AppSec101/resources/images/data-types.png)
+![Data types](.gitbook/assets/data-type.png)
 
 {% hint style="info" %}
 In computing, the most significant bit \(MSB, also called the high-order bit\) is the bit position in a binary number having the greatest value. The MSB is sometimes referred to as the high-order bit or left-most bit due to the convention in the positional notation of writing more significant digits further to the left. Therefore, the least significant bit \(LSB\) is the bit position in a binary integer giving the units value, that is, determining whether the number is even or odd. \[[2](https://en.wikipedia.org/wiki/Bit_numbering)\]
