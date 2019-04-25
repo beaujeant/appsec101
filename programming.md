@@ -1,6 +1,6 @@
 # Programming
 
-[Learning C](https://www.learn-c.org/), or programming in general, is beyond the scope of this course. You are actually expected to understand C and the main concepts of programming to follow this course. This chapter is just a reminder and allows me to have reference to some concepts later in this course. The chapter [assembly](https://beaujeant.github.io/appsec101/assemby/) is meant to match this chapter so that you can see the transformation from C to assembly.
+[Learning C](https://www.learn-c.org/), or programming in general, is beyond the scope of this course. You are actually expected to understand C and the main concepts of programming to follow this course. This chapter is just a reminder and allows me to have reference to some concepts later in this course. The chapter [assembly](assembly.md) is meant to match this chapter so that you can see the transformation from C to assembly.
 
 ## Hello world!
 
@@ -181,7 +181,7 @@ Here, we assign a _float_ to the variable `number` which is supposed to handle _
 mov DWORD PTR [ebp-0xc],0x3
 ```
 
-It automatically converted the float `3.2` into the integer \(`0x3`\) and copied it in memory where the variable `number` is located \(i.e. `ebp-0xc`\). Don’t worry if you didn’t understand this last example, we will have a closer look at it in the next [chapter](https://beaujeant.github.io/appsec101/assemlby/).
+It automatically converted the float `3.2` into the integer \(`0x3`\) and copied it in memory where the variable `number` is located \(i.e. `ebp-0xc`\). Don’t worry if you didn’t understand this last example, we will have a closer look at it in the next [chapter](assembly.md).
 
 ### Browsing array
 
@@ -221,7 +221,7 @@ Will be translated as the following in machine instruction:
 sub esp, 0x4
 ```
 
-The above assembly instruction allocates 4 bytes in the stack. `ESP` points at the top of the stack, and if you look in chapter [memory](https://beaujeant.github.io/appsec101/memory/), the stack is growing _backward_, so subtracting `ESP` means increasing the size of the stack.
+The above assembly instruction allocates 4 bytes in the stack. `ESP` points at the top of the stack, and if you look in chapter [memory](memory.md), the stack is growing _backward_, so subtracting `ESP` means increasing the size of the stack.
 
 ### Assigning value
 
@@ -257,7 +257,7 @@ Now that the variables are declared and set, we can start manipulating them.
 
 ### Pointer
 
-We mentioned at the beginning of this sub-chapter that variables are meant to be some sort of abstraction layer so that we don’t have to deal with memory addresses and offsets and instead we can use a meaningful name to store, move and process data. However, sometime, it could be interesting to actually know and manipulate the memory address of a variable. One reason will be explain later in sub-chapter [function arguments](programming.md#function-arguments).
+We mentioned at the beginning of this sub-chapter that variables are meant to be some sort of abstraction layer so that we don’t have to deal with memory addresses and offsets and instead we can use a meaningful name to store, move and process data. However, sometime, it could be interesting to actually know and manipulate the memory address of a variable. One reason will be explain later in sub-chapter [function arguments](programming.md#functions).
 
 In order to know the address in memory where the variable is stored, you can use the symbol `&` right in front of the variable name, e.g. `&number`. You can also create variables that are meant to store a memory address. Those variables are called _pointer_ and can be declared as follow: `<type> *<variable name>`. For instance, if we want to create a pointer `pointer` that will store an integer, we will have the following line:
 
@@ -754,7 +754,7 @@ The function `main` is usually expected to return an _exit status_ \(`0` if the 
 * `argc`: an integer which contains the number of arguments sent
 * `argv`: an array of `char` pointer which are the actual arguments sent
 
-We’ve seen earlier in chapter [CPU](https://beaujeant.github.io/appsec101/cpu/), strings are actually an array of `char` terminated with a NULL character \(`0x00`\). And as we’ve seen in this chapter, whenever we use the name of an array without brackets, this is actually a pointer to the first element of that array. Whenever we deal with a string, we usually send the pointer and not a single element of the array. So the argument `char *argv[]` can be considered as an array of strings, where `argv[0]` is the first argument, `argv[1]` the second, etc.
+We’ve seen earlier in chapter [CPU](central-processing-unit.md), strings are actually an array of `char` terminated with a NULL character \(`0x00`\). And as we’ve seen in this chapter, whenever we use the name of an array without brackets, this is actually a pointer to the first element of that array. Whenever we deal with a string, we usually send the pointer and not a single element of the array. So the argument `char *argv[]` can be considered as an array of strings, where `argv[0]` is the first argument, `argv[1]` the second, etc.
 
 Here is an example to print all program arguments:
 
@@ -1069,7 +1069,7 @@ Here again, that’s pretty much it. If you want further information, you can re
 
 ### free
 
-The function `free` was also covered in chapter [Memory](https://beaujeant.github.io/appsec101/memory/) - [Heap](https://beaujeant.github.io/appsec101/memory/#heap). `free` is used whenever we no longer need the dynamically allocated memory block. It _releases_ so that it can be re-used for another dynamically allocated memory. The function takes as argument a pointer to a dynamically allocated memory block and returns nothing.
+The function `free` was also covered in chapter [Memory](memory.md) - [Heap](memory.md#heap). `free` is used whenever we no longer need the dynamically allocated memory block. It _releases_ so that it can be re-used for another dynamically allocated memory. The function takes as argument a pointer to a dynamically allocated memory block and returns nothing.
 
 ```c
 #include <stdio.h>
