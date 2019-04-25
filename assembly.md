@@ -144,7 +144,7 @@ Once the instruction executed, the stack looks like this:
 The `push` instruction adds the operand value onto the top of the stack and updates `esp` accordingly \(decrement by 4\). The operant is `DWORD PTR [ecx-0x4]`:
 
 * `ecx-0x4`: Takes the value stored in `ecx` and subtract `0x4` \(4 in decimal\).
-* `PTR [` `]`: Consider the value calculated inside the bracket as a memory address and store into the stack the value pointed by this address \(instead of the address itself\). 
+* `PTR [` `]`: Consider the value calculated inside the bracket as a memory address and `push` instruction is actually storing into the stack the value pointed by this address \(instead of the address itself\). 
 * `DWORD`: Stands for _D_ouble _WORD_ \(4 bytes\). This means the pointed data should be considered as a 4 bytes variable.
 
 `ecx` contains the memory address where `argc` is stored in the stack \(see [line 1](assembly.md#line-1-lea-ecx-esp-0-x4)\). Since addresses are 4-bytes long, subtracting four is basically looking at the variable stored before `argc`, which in this case is the _return address_ `0xb7e21637`. So after this instruction, the top of the stack will be pointing to the _return address_.
@@ -307,7 +307,7 @@ Adding to `esp` is basically cleaning the stack and remove memory local variable
 
 ### Line 12: nop 
 
-The `nop` is an interesting instruction since it does absolutly nothing. `nop` stands for **N**o **OP**eration. When the CPU reach that instruction, it won't do anything and just move to the next instruction. The `nop` instruction is stored in memory as the machine instruction  `0x90`, one single byte. So if we want to be very accurate, the `nop` instruction is only incrementing the instruction pointer by one:
+The `nop` is an interesting instruction since it does absolutly nothing. `nop` stands for **N**o **OP**eration. When the CPU reach that instruction, it won't do anything and just move to the next one. The `nop` instruction is stored in memory as the machine instruction  `0x90`, one single byte. So if we want to be very accurate, the `nop` instruction is actually doing something:  incrementing the instruction pointer by one:
 
 ```text
 (gdb) info registers eip
@@ -320,11 +320,51 @@ eip            0x804842d	0x804842d <main+34>
 
 ### Line 13: mov ecx,DWORD PTR \[ebp-0x4\] 
 
+We've seen it already, the mov instruction is copying the content of the second operand into the first operant. The first operand \(moving destination\) is pretty clear, i.e. the register `ecx`. However, the first operand \(moving source\) might need a few explanation:
+
+* `ebp-0x4`: Takes the value stored in `ebp` and subtract `0x4` \(4 in decimal\).
+* `PTR [` `]`: Consider the value calculated inside the bracket as a memory address and the `mov` instruction is actually copying the value pointed by this address \(instead of the address itself\). 
+* `DWORD`: Stands for _D_ouble _WORD_ \(4 bytes\). This means the pointed data should be considered as a 4 bytes variable.
+
+The register `ebp` was set in [line 5](assembly.md#line-5-mov-ebp-esp) and is used as the base pointer of the stack frame for the function `main`. 
+
+IMAGE OF STACK FRAME FOR MAIN
+
+So when accessing data with a **negative** offset to `ebp`, we usually try to access local variable of the function to which the stack frame belong to. While if we try to access data with **positive** offset to `ebp`, this will most likely by argument to the function to which the stack frame belong to.
+
+IMAGE STACK FRAME POSITIVE OFFSET AND NEGATIVE OFFSET.
+
+So here, `ebp-0x4` is the address where the register `ecx` was saved earlier in [line 6](assembly.md#line-6-push-ecx). So basically, in line 6, we saved `ecx` in the stack, then we do something \(between line 7 and 13\) which migh alter `ecx`, and later in line 14, we restore the initial value saved in line 6 back in `ecx`.
+
 ### Line 14: leave
 
-### Line 15: lea esp,\[ecx-0x4\] 
+The instruction `leave` is meant to reset the stack as it was at the beginning of the function. For this, is copies the content of the base pointer \(`ebp`\) in the stack pointer \(`esp`\), which releases the stack space allocated to the stack frame \(e.g. local variables\), then it copies the the variable on top of the stack in the base pointer \(`ebp`\). It is basically the equivalent of the following instructions:
+
+```text
+mov esp, ebp
+pop ebp
+```
+
+{% hint style="info" %}
+We haven't seen the `pop` instruction yet. `pop` is kind of the opposite of `push`. It takes the 4-bytes value on top of the stack and stores it in the first operant. Then it updates the the stack pointer accordingly, i.e. subtract 4 from `esp`.
+{% endhint %}
+
+### Line 15: lea esp,\[ecx-0x4\]
+
+The instruction `lea` was the [first one](assembly.md#line-1-lea-ecx-esp-0-x4) we've seen. It actually works a bit like `mov`, except that it has a different syntax. When using bracket for the second operand, `lea` calculates what is inside and copies the result in the first operand; while `mov` calculates what is inside the bracket and copies the value pointed by the resulted address in the first operand.
+
+So here, we take the value stored in `ecx`, subtact `0x4` and save the result in `esp`:
+
+```text
+(gdb) info registers ecx
+(gdb) info registers esp
+(gdb) nexti
+(gdb) info registers esp
+```
 
 ### Line 16: ret
+
+Finally, the last line: the instruction `ret`! 
 
 ### Wrap up
 
