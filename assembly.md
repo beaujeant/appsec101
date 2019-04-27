@@ -2,13 +2,13 @@
 
 Assembly is a vast topic. We could spend hours, days, month and we still would have plenty to say about. Nevertheless, this is not a reverse engineering course and I’m myself not particularly fluent in assembly, so this course will cover the bare minimum to understand and exploit the vulnerabilities listed for this course, i.e. buffer overflow, format string, use after free and integer over/underflow.
 
-As seen in the [CPU](central-processing-unit.md) chapter, instructions are sent to the CPU in the form of binary values. Each binary instruction correspond to one assembly instruction. It is therefore possible to translate binary instructions directly into assembly instructions and the other way round. There is a one-to-one relation between binary instructions sent to CPU and assembly instructions, which is not the case for the relation between C and binary instruction. For instance, the line `c = 4 + 2;` in C can be translated in several ways and it will be composed of more than one binary instruction \(CPU operation\).
+As seen in the [CPU](central-processing-unit.md) chapter, instructions are sent to the CPU in the form of binary values of one or multiple bytes. Each binary instruction correspond to one assembly instruction. It is therefore possible to translate binary instructions directly into assembly instructions and the other way round. There is a one-to-one relation between binary instructions sent to CPU and assembly instructions, which is not the case for the relation between C and binary instruction. For instance, this single code line `c = 4 + 2;` in C can be translated in several ways and it will be composed of more than one binary instruction \(CPU operation\).
 
 {% hint style="info" %}
 The translation from binary instructions to its assembly representation is called _to disassemble_, while the other way, i.e. the translation from assembly instructions to their binary instructions is called _to assemble_.
 {% endhint %}
 
-Programs can be developped entirely in assembly. However, if you simply translate assembly instructions to their corresponding binary instructions, the final binary file won't be executable. For this, you need to build a [ELF file](memory.md#elf-pe-file), embed the translated instruction together with _initialized data_ and _global variables_, map the data, build the import table, etc. This is the role of the _compiler_ and _linker_ to do this, but this is another story. In this course we don't want to learn assembly to build application, instead, we want to learn how to read and understand compiled code, which is different exercice and requires slightly different knowledge and skills in assembly.
+Programs can be developped entirely in assembly. However, if you simply translate assembly instructions to their corresponding binary instructions, the final binary file won't be executable. For this, you need to build a [ELF file](memory.md#elf-pe-file), embed the translated instructions together with _initialized data_ and _global variables_, map the data, build the import table, etc. This is the role of the _compiler_ and _linker_ to do this, but this is another story. In this course we don't want to learn assembly to build application, instead, we want to learn how to read and understand compiled code, which is different exercice and requires slightly different knowledge and skills in assembly.
 
 ## Hello world!
 
@@ -53,7 +53,7 @@ Dump of assembler code for function main:
 End of assembler dump.
 ```
 
-Here, we only disassembled the instructions for the function `main` and we already ended up with 16 assembly instructions. For now, no need to understand why the compiler translated the code like this, just try to understand what each line does independently. Let's dive into it!
+Here, we only disassembled the instructions from the function `main` and we already ended up with 16 assembly instructions. For now, no need to understand why the compiler translated the code like this, just try to understand what each line does independently. Let's dive into it!
 
 ### Line 1: lea ecx,\[esp+0x4\]
 
@@ -71,7 +71,7 @@ Here is how to read this first line of assembly:
 This course is using the intel syntax, which [differs](http://web.mit.edu/rhel-doc/3/rhel-as-en-3/i386-syntax.html) slightly from the AT&T syntax.
 {% endhint %}
 
-`lea` is the _load in effective address_ instruction. What it does is basically calculating the what is inside the bracket of the second operand and write the result \(4 bytes\) in the first operand. So the instruction at `0x0804840b` is reading the content of the register `esp`, add 4, and store the result in the register `ecx`.
+`lea` is the _load in effective address_ instruction. What it does is basically calculating what is inside the bracket of the second operand and write the result \(4 bytes\) in the first operand. So the instruction at `0x0804840b` is reading the content of the register `esp`, add 4, and store the result in the register `ecx`.
 
 {% hint style="info" %}
 If you remember from chapter memory, the register `esp` is pointing to the top of the stack.
@@ -88,7 +88,7 @@ Breakpoint 1, 0x0804840b in main ()
 esp            0xbfffef4c	0xbfffef4c
 ```
 
-When the instruction is executed, the register `esp` stores the value `0xbfffef4c`. So once the instruction executed, ecx stores `0xbfffef50` \(`0xbfffef4c` + `0x04`\).
+When the instruction is executed, the register `esp` contains the value `0xbfffef4c`. So after execution, `ecx` stores `0xbfffef50` \(`0xbfffef4c` + `0x04`\).
 
 Let's verify it:
 
@@ -103,11 +103,17 @@ ecx            0xbfffef50	-1073746096
 
 So, all went as expected. But why copying that value in `ecx`? What is even stored at `[esp+0x4]`? 
 
-First of all, remember that the stack is "growing" **downward**, which means if you add new content to the stack, the address of the top of the stack will **decrease** \(see chapter [memory](memory.md#stack)\). So `[esp+0x4]` is pointing to a variable inside the stack at an offset of 4 bytes from the top of it. As seen in chapter [Memory](memory.md) - [Stack](memory.md#stack), arguments sent to a function are \(usually\) pushed to the stack prior to call the function. Once the function called, the _return address_ is pushed to the stack \(right above the arguments\). At this point, when the CPU reached the first instruction from the function main, the stack looks like this:
+First of all, remember that the stack is "growing" **downward**, which means if you add new content to the stack, the stack pointer, which always point to the top of the stack, will **decrease** \(see chapter [memory](memory.md#stack)\). So `[esp+0x4]` is pointing to a variable inside the stack at an offset of 4 bytes from the top of it. As seen in chapter [Memory](memory.md) - [Stack](memory.md#stack), functoin arguments are \(usually\) pushed to the stack prior to call the function. When the function is called, the _return address_ is pushed to the stack \(right above the arguments\).
 
-![](.gitbook/assets/main-stack.gif)
+At this point, when the CPU reached the first instruction from the function `main`, the stack looks like this:
 
- This means `[esp]` point to the _return address_ `0xb7e21637` and `[esp+0x4]` points to `argc`,  the first argument of main. So, even if we don't use it in our C code, our compiled program has an instruction that saves a pointer to the first argument into `ecx`. I don't know why, but it doesn't matter, let's move to the next instruction.
+![Stack at the beginning of the main function](.gitbook/assets/stack-main.gif)
+
+{% hint style="info" %}
+Note that the data is stored in little-endian, which means if the value `0xb7e21637` is stored at the address `0xbfffef4c`, it actually means `0x37` is stored at 0xbfffef4c, `0xef` is stored at `0xbfffef4d`, `0xff` is stored at `0xbfffef4e` and `0xbf` is stored at `0xbfffef4f`.
+{% endhint %}
+
+This means `[esp]` point to the _return address_ `0xb7e21637` and `[esp+0x4]` points to `argc`,  the first argument of main. So, even if we don't use it in our C code, our compiled program has an instruction that saves the address where the first argument is located into the `ecx` registre. I don't know why, but it doesn't matter for now, let's move to the next instruction.
 
 ### Line 2: and esp,0xfffffff0
 
@@ -133,27 +139,33 @@ esp            0xbfffef40	0xbfffef40
 eflags         0x282	[ SF IF ]
 ```
 
-In the first four lines, we read the content of `esp` and the `eflag` register, then we execute the AND instruction, and finally, in the four last lines, we read again the content of `esp` and the `eflag` registers to see the changes done by the `and` operation.
+In the first four lines of this GDB commad output, we read the content of `esp` and the `eflag` register, then we execute the `and` instruction, and finally, in the four last lines, we read again the content of `esp` and the `eflag` registers to see the changes done by the AND operation.
 
 Once the instruction executed, the stack looks like this:
 
 ![](.gitbook/assets/stack-and.png)
 
+{% hint style="info" %}
+AND operation on the `esp` register are often done at the beginning of the `main` function to re-align the stack address, i.e. be a mutliple of `0x10` \(16\) \[[1](https://stackoverflow.com/a/28475252)\]
+{% endhint %}
+
 ### Line 3: push DWORD PTR \[ecx-0x4\]
 
-The `push` instruction adds the operand value onto the top of the stack and updates `esp` accordingly \(decrement by 4\). The operant is `DWORD PTR [ecx-0x4]`:
+The `push` instruction adds the operand value onto the top of the stack and updates `esp` accordingly \(decrement by 4\). The operand is `DWORD PTR [ecx-0x4]`:
 
 * `ecx-0x4`: Takes the value stored in `ecx` and subtract `0x4` \(4 in decimal\).
-* `PTR [` `]`: Consider the value calculated inside the bracket as a memory address and `push` instruction is actually storing into the stack the value pointed by this address \(instead of the address itself\). 
+* `PTR [` `]`: Consider the value calculated inside the bracket as a memory address and the `push` instruction is actually storing into the stack the value pointed by this address \(instead of the address itself\). 
 * `DWORD`: Stands for _D_ouble _WORD_ \(4 bytes\). This means the pointed data should be considered as a 4 bytes variable.
 
-`ecx` contains the memory address where `argc` is stored in the stack \(see [line 1](assembly.md#line-1-lea-ecx-esp-0-x4)\). Since addresses are 4-bytes long, subtracting four is basically looking at the variable stored before `argc`, which in this case is the _return address_ `0xb7e21637`. So after this instruction, the top of the stack will be pointing to the _return address_.
+`ecx` contains the memory address where `argc` is stored in the stack \(see [line 1](assembly.md#line-1-lea-ecx-esp-0-x4)\). Since addresses are 4-bytes long, subtracting four is basically looking at the variable stored before `argc`, which in this case is the _return address_ `0xb7e21637`. So, the `push` instruction will add to the stack a copy of the _return address_:
 
 ![](.gitbook/assets/stack-push-ret.png)
 
 ### Line 4: push ebp
 
-When used without bracket, the instruction `push` with a register as operant simply push \(add\) on top of the stack the value stored in the register and update `esp` accordingly \(decrement by 4\). The register `ebp` is used as a **b**ase **p**ointer for the stack frame \(see chapter [Memory](memory.md) - [Stack](memory.md#stack)\).
+When used without bracket, the instruction `push` with a register as operand simply pushes \(add\) on top of the stack the value stored in the register and update `esp` accordingly \(decrement by 4\). 
+
+The register `ebp` is used as a **b**ase **p**ointer for the stack frame \(see chapter [Memory](memory.md) - [Stack](memory.md#stack)\).
 
 ![](.gitbook/assets/stack-push-ebp.png)
 
@@ -180,6 +192,8 @@ The registers `ebp` and `esp` are now both pointing to the top of the stack.
 
 We've seen the `push` instruction twice already, so you should know what it does by now, i.e. it will pushes the content of the register `ecx` on the stack. If you remember, in [line 1](assembly.md#line-1-lea-ecx-esp-0-x4), `ecx` contains the stack address where the the first argument of main \(`argc`\) is saved.
 
+![main stack after line 6](.gitbook/assets/main-stack-1.png)
+
 ### Line 7: sub esp,0x4
 
 `sub` stands for _subtracting_. It takes the first operand and subtract the second one to it. The result is than saved in the first operand. This instruction could be basically interpreted as `esp = esp - 0x4`.
@@ -197,6 +211,8 @@ esp            0xbfffef30	0xbfffef30
 Subtracting from `esp` is basically allocating memory in the stack for local variable\(s\). However, bear in mind that the newly allocated memory memory space is not initialized, so this memory area has unknown data from previous stack usage.
 {% endhint %}
 
+![main stack after line 7](.gitbook/assets/main-stack-2.png)
+
 ### Line 8: sub esp,0xc
 
 Surprisingly enough, the next instruction also subtract a static number to `esp`. I don't why this is done over two instruction instead of, for instance, this single equivalent instruction: `sub esp, 0x10`.
@@ -209,6 +225,8 @@ esp            0xbfffef30	0xbfffef30
 (gdb) info registers esp
 esp            0xbfffef24	0xbfffef24
 ```
+
+![main stack after line 8](.gitbook/assets/main-stack-3.png)
 
 ### Line 9: push 0x80484c0 
 
@@ -245,6 +263,8 @@ If you some experience with reversing, you should quickly noticed that each byte
 
 So `0x80484c0` is actually a pointer to the string "Hello World!" stored in the `.rodata` section. The instruction in line 9 is pushing that address to the stack.
 
+![main stack after line 9](.gitbook/assets/main-stack-4.png)
+
 ### Line 10: call 0x80482e0 printf@plt 
 
 The `call` instruction redirects the execution flow by changing the instruction pointer \(`EIP`\) with the address mentioned as operand. Usually, this operand is an address to a function. However, before it does that, it `push` to the stack the address of the following instruction. This address saved in the stack so that later, whenever the function if done, the program knows where to return.
@@ -274,6 +294,8 @@ Let see the instruction `call` in action:
 
 In lines 1-4, I print the current and the next two instructions. We can see that the instruction pointer is not pointing to the `call 0x80482e0`. In line 5-6, I print the first 3 words on top of the stack. As seen in the [previous instruction](assembly.md#line-9-push-0x-80484-c0), the last `push` to the stack was with the pointer to "Hello World!", i.e. `0x080484c0`. We then execute the `call` instruction in line 7 with the GDB command `stepi` and **not** `nexti` \(see the difference in chater [lab](lab-environment.md#gdb)\). One the command executed, we can see in lines 9-12 that the instruction pointer is now pointer to `0x80482e0`, the first operand of the executed `call` instruction. Finally, we see in lines 13-14 that the address of the instruction located right \(i.e. `0x08048429`\) after the call instruction has been pushed to the stack.
 
+![Stack at the beginning of printf](.gitbook/assets/main-stack-5.png)
+
 Here, we will not follow the `printf@plt` execution flow, instead we will tell GDB to continue the execution until we get back to `main` function:
 
 ```text
@@ -287,6 +309,13 @@ Run till exit from #0  0x080482e0 in printf@plt ()
 ```
 
 We are now back in the `main` function, at the instruction located right after the `call 0x80482e0`.
+
+```text
+(gdb) x/3x $esp
+0xbfffef20:	0x080484c0	0xbfffefe4	0xbfffefec
+```
+
+![main stack after the call printf](.gitbook/assets/main-stack-4.png)
 
 ### Line 11: add esp,0x10 
 
@@ -304,6 +333,8 @@ esp            0xbfffef30	0xbfffef30
 {% hint style="info" %}
 Adding to `esp` is basically cleaning the stack and remove memory local variable\(s\) from the stack.
 {% endhint %}
+
+![main stack after line 11](.gitbook/assets/main-stack-2.png)
 
 ### Line 12: nop 
 
@@ -326,15 +357,21 @@ We've seen it already, the mov instruction is copying the content of the second 
 * `PTR [` `]`: Consider the value calculated inside the bracket as a memory address and the `mov` instruction is actually copying the value pointed by this address \(instead of the address itself\). 
 * `DWORD`: Stands for _D_ouble _WORD_ \(4 bytes\). This means the pointed data should be considered as a 4 bytes variable.
 
-The register `ebp` was set in [line 5](assembly.md#line-5-mov-ebp-esp) and is used as the base pointer of the stack frame for the function `main`. 
-
-IMAGE OF STACK FRAME FOR MAIN
-
-So when accessing data with a **negative** offset to `ebp`, we usually try to access local variable of the function to which the stack frame belong to. While if we try to access data with **positive** offset to `ebp`, this will most likely by argument to the function to which the stack frame belong to.
-
-IMAGE STACK FRAME POSITIVE OFFSET AND NEGATIVE OFFSET.
+The register `ebp` was set in [line 5](assembly.md#line-5-mov-ebp-esp) and is used as the base pointer of the stack frame for the function `main`. When accessing data with a **negative** offset to `ebp`, we usually try to access local variable of the function to which the stack frame belong to. While if we try to access data with **positive** offset to `ebp`, this will most likely by argument to the function to which the stack frame belong to.
 
 So here, `ebp-0x4` is the address where the register `ecx` was saved earlier in [line 6](assembly.md#line-6-push-ecx). So basically, in line 6, we saved `ecx` in the stack, then we do something \(between line 7 and 13\) which migh alter `ecx`, and later in line 14, we restore the initial value saved in line 6 back in `ecx`.
+
+```text
+(gdb) info registers ecx
+ecx            0x804b014	134524948
+(gdb) x/x $ebp-4
+0xbfffef34:	0xbfffef50
+(gdb) nexti
+0x08048430 in main ()
+(gdb) info registers ecx
+ecx            0xbfffef50	-1073746096
+
+```
 
 ### Line 14: leave
 
@@ -366,6 +403,10 @@ esp            0xbfffef3c	0xbfffef3c
 esp            0xbfffef4c	0xbfffef4c
 ```
 
+![main stack after line 14](.gitbook/assets/main-stack-6.png)
+
+At this point of time, `ecx` is pointing to the first argument of the function `main`. The address just above \(i.e. -0x4\) is actually the _return address_ of the main's callee function, i.e. `__libc_stat_main`.
+
 ### Line 16: ret
 
 Finally, the last line: the instruction `ret`! That last instruction is the equivalent of `pop eip`: it redirects the execution flow to the address stored at the top of the stack. This is meant to return to the callee, right after the `call` instruction.
@@ -396,7 +437,7 @@ Now you understand why the `call` instruction is pushing to the stack the addres
 In the four first lines, we list the current and next instructions. The two instructions after `ret` are `xchg ax,ax`. The function is usually finished after ret, what follows in memory is usually another fucntion or some filler between functions. 
 
 {% hint style="info" %}
-`xchg ax, ax` instruction is the equivalent of `nop` \[[2](https://stackoverflow.com/a/2136065)\] but using 2 bytes in memory instead \(i.e. 0x66 0x90\). `xchg ax,ax` is often used as filler.
+The `xchg` instruction exchange the content of the two operands. Here in this case, exchanging the content of the register `ax` with the regsiter `ax` does nothing. Sometime, the compiler/linker uses `chxg ax,ax`, instead of the`nop` instruction  because it takes 2 bytes in memory \(i.e. 0x66 0x90\) and not one byte like the `nop` instruction, which makes it easier for the memory alingment \[[2](https://stackoverflow.com/a/2136065)\]. `xchg ax,ax` is often used as filler.
 {% endhint %}
 
 So the current instruction is `ret` and the top of the stack contains the value `0xb7e21637` as seen in lines 5-6. Once the instruction `ret` executed, the execution flow got redirected back in the funciton `__libc_stat_main` \[[3](http://refspecs.linuxbase.org/LSB_3.1.0/LSB-generic/LSB-generic/baselib---libc-start-main-.html)\] at the address `0xb7e21637`. And when we look at the stack in lines 13-14, the address has been popped out and the top of the stack is now pointing at the next variable.
@@ -409,9 +450,9 @@ And voila, this was was the assembly translation for the `main` function of _hel
 
 ### Wrap up
 
-Reading line by line assembly is rather easy. The main complexity lies in building a comprehensive understanding of what the function \(or piece of function\) does. Putting all the lines together to make sense out of it and understanding what the developer intended to it.
+Reading line by line assembly is rather easy. The main complexity lies in building a comprehensive understanding of what the function \(or pieces of function\) does: putting all the lines together to make sense out of it and understanding what the developer intended to it.
 
-Most of line we've seen doesn't make too much sense or seems useless. To be honest, the function `main` could have been simplified with the following 4-lines:
+Most of lines we've seen doesn't make too much sense or seems useless. To be honest, the function `main` could have been simplified with the following 4-lines:
 
 ```text
 push   0x80484c0
@@ -440,6 +481,7 @@ Comparison Test Un/Signed integer
 
 ## References
 
-* \[[1](https://en.wikipedia.org/wiki/Data_segment)\] [https://en.wikipedia.org/wiki/Data\_segment](https://en.wikipedia.org/wiki/Data_segment)
-* \[[2](https://stackoverflow.com/a/2136065)\] [https://stackoverflow.com/a/2136065](https://stackoverflow.com/a/2136065)
+* \[[1](https://stackoverflow.com/a/28475252)\] [https://stackoverflow.com/a/28475252](https://stackoverflow.com/a/28475252)
+* \[[2](https://en.wikipedia.org/wiki/Data_segment)\] [https://en.wikipedia.org/wiki/Data\_segment](https://en.wikipedia.org/wiki/Data_segment)
+* \[[3](https://stackoverflow.com/a/2136065)\] [https://stackoverflow.com/a/2136065](https://stackoverflow.com/a/2136065)
 
