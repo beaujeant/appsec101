@@ -55,7 +55,7 @@ End of assembler dump.
 
 Here, we only disassembled the instructions from the function `main` and we already ended up with 16 assembly instructions. For now, no need to understand why the compiler translated the code like this, just try to understand what each line does independently. Let's dive into it!
 
-### Line 1: lea ecx,\[esp+0x4\]
+#### Line 1: lea ecx,\[esp+0x4\]
 
 ```text
    0x0804840b <+0>:     lea    ecx,[esp+0x4]
@@ -115,7 +115,7 @@ Note that the data is stored in little-endian, which means if the value `0xb7e21
 
 This means `[esp]` point to the _return address_ `0xb7e21637` and `[esp+0x4]` points to `argc`,  the first argument of main. So, even if we don't use it in our C code, our compiled program has an instruction that saves the address where the first argument is located into the `ecx` registre. I don't know why, but it doesn't matter for now, let's move to the next instruction.
 
-### Line 2: and esp,0xfffffff0
+#### Line 2: and esp,0xfffffff0
 
 `and` is doing exactly what the name implies: it executes the logic _AND_ operation with the two operands. The result \(4 bytes\) is then stored in the first operand. Furthermore, the following flags \(see chapter [memory](memory.md#flags-register)\) are updated after the operation:
 
@@ -149,7 +149,7 @@ Once the instruction executed, the stack looks like this:
 AND operation on the `esp` register are often done at the beginning of the `main` function to re-align the stack address, i.e. be a mutliple of `0x10` \(16\) \[[1](https://stackoverflow.com/a/28475252)\]
 {% endhint %}
 
-### Line 3: push DWORD PTR \[ecx-0x4\]
+#### Line 3: push DWORD PTR \[ecx-0x4\]
 
 The `push` instruction adds the operand value onto the top of the stack and updates `esp` accordingly \(decrement by 4\). The operand is `DWORD PTR [ecx-0x4]`:
 
@@ -161,7 +161,7 @@ The `push` instruction adds the operand value onto the top of the stack and upda
 
 ![](.gitbook/assets/stack-push-ret.png)
 
-### Line 4: push ebp
+#### Line 4: push ebp
 
 When used without bracket, the instruction `push` with a register as operand simply pushes \(add\) on top of the stack the value stored in the register and update `esp` accordingly \(decrement by 4\). 
 
@@ -169,7 +169,7 @@ The register `ebp` is used as a **b**ase **p**ointer for the stack frame \(see c
 
 ![](.gitbook/assets/stack-push-ebp.png)
 
-### Line 5: mov ebp,esp
+#### Line 5: mov ebp,esp
 
 The `mov` instruction is one of the most used instruction. When the operands are two registers, it copies the content of the second operand and overwrite the content of the first operand with it. In this case, when the CPU reaches that instruction, the stack pointer \(`esp`\) contains `0xbfffef38`. Once the instruction executed, the base pointer \(`ebp`\) will also contain `0xbfffef38`.
 
@@ -188,13 +188,13 @@ ebp            0xbfffef38	0xbfffef38
 
 The registers `ebp` and `esp` are now both pointing to the top of the stack.
 
-### Line 6: push ecx
+#### Line 6: push ecx
 
 We've seen the `push` instruction twice already, so you should know what it does by now, i.e. it will pushes the content of the register `ecx` on the stack. If you remember, in [line 1](assembly.md#line-1-lea-ecx-esp-0-x4), `ecx` contains the stack address where the the first argument of main \(`argc`\) is saved.
 
 ![main stack after line 6](.gitbook/assets/main-stack-1.png)
 
-### Line 7: sub esp,0x4
+#### Line 7: sub esp,0x4
 
 `sub` stands for _subtracting_. It takes the first operand and subtract the second one to it. The result is than saved in the first operand. This instruction could be basically interpreted as `esp = esp - 0x4`.
 
@@ -213,7 +213,7 @@ Subtracting from `esp` is basically allocating memory in the stack for local var
 
 ![main stack after line 7](.gitbook/assets/main-stack-2.png)
 
-### Line 8: sub esp,0xc
+#### Line 8: sub esp,0xc
 
 Surprisingly enough, the next instruction also subtract a static number to `esp`. I don't why this is done over two instruction instead of, for instance, this single equivalent instruction: `sub esp, 0x10`.
 
@@ -228,7 +228,7 @@ esp            0xbfffef24	0xbfffef24
 
 ![main stack after line 8](.gitbook/assets/main-stack-3.png)
 
-### Line 9: push 0x80484c0 
+#### Line 9: push 0x80484c0 
 
 When `push` is used with a direct value instead of a register, the value iself is pushed to the stack. But what is `0x80484c0`? Why is it pushed to the stack? Let's have a look at the section mapping to see from which section this address belong to:
 
@@ -265,7 +265,7 @@ So `0x80484c0` is actually a pointer to the string "Hello World!" stored in the 
 
 ![main stack after line 9](.gitbook/assets/main-stack-4.png)
 
-### Line 10: call 0x80482e0 printf@plt 
+#### Line 10: call 0x80482e0 printf@plt 
 
 The `call` instruction redirects the execution flow by changing the instruction pointer \(`EIP`\) with the address mentioned as operand. Usually, this operand is an address to a function. However, before it does that, it `push` to the stack the address of the following instruction. This address saved in the stack so that later, whenever the function if done, the program knows where to return.
 
@@ -317,7 +317,7 @@ We are now back in the `main` function, at the instruction located right after t
 
 ![main stack after the call printf](.gitbook/assets/main-stack-4.png)
 
-### Line 11: add esp,0x10 
+#### Line 11: add esp,0x10 
 
 As its name implies, the instruction `add` operates an addition with the first operand and the second operand. The result is then saved in the first operand.
 
@@ -336,7 +336,7 @@ Adding to `esp` is basically cleaning the stack and remove memory local variable
 
 ![main stack after line 11](.gitbook/assets/main-stack-2.png)
 
-### Line 12: nop 
+#### Line 12: nop 
 
 The `nop` is an interesting instruction since it does absolutly nothing. `nop` stands for **N**o **OP**eration. When the CPU reach that instruction, it won't do anything and just move to the next one. The `nop` instruction is stored in memory as the machine instruction  `0x90`, one single byte. So if we want to be very accurate, the `nop` instruction is actually doing something:  incrementing the instruction pointer by one:
 
@@ -349,7 +349,7 @@ eip            0x804842c	0x804842c <main+33>
 eip            0x804842d	0x804842d <main+34>
 ```
 
-### Line 13: mov ecx,DWORD PTR \[ebp-0x4\] 
+#### Line 13: mov ecx,DWORD PTR \[ebp-0x4\] 
 
 We've seen it already, the mov instruction is copying the content of the second operand into the first operant. The first operand \(moving destination\) is pretty clear, i.e. the register `ecx`. However, the first operand \(moving source\) might need a few explanation:
 
@@ -373,7 +373,7 @@ ecx            0xbfffef50	-1073746096
 
 ```
 
-### Line 14: leave
+#### Line 14: leave
 
 The instruction `leave` is meant to reset the stack as it was at the beginning of the function. For this, is copies the content of the base pointer \(`ebp`\) in the stack pointer \(`esp`\), which releases the stack space allocated to the stack frame \(e.g. local variables\), then it copies the the variable on top of the stack in the base pointer \(`ebp`\). It is basically the equivalent of the following instructions:
 
@@ -386,7 +386,7 @@ pop ebp
 We haven't seen the `pop` instruction yet. `pop` is kind of the opposite of `push`. It takes the 4-bytes value on top of the stack and stores it in the first operant. Then it updates the the stack pointer accordingly, i.e. subtract 4 from `esp`.
 {% endhint %}
 
-### Line 15: lea esp,\[ecx-0x4\]
+#### Line 15: lea esp,\[ecx-0x4\]
 
 The instruction `lea` was the [first one](assembly.md#line-1-lea-ecx-esp-0-x4) we've seen. It actually works a bit like `mov`, except that it has a different syntax. When using bracket for the second operand, `lea` calculates what is inside and copies the result in the first operand; while `mov` calculates what is inside the bracket and copies the value pointed by the resulted address in the first operand.
 
@@ -407,7 +407,7 @@ esp            0xbfffef4c	0xbfffef4c
 
 At this point of time, `ecx` is pointing to the first argument of the function `main`. The address just above \(i.e. -0x4\) is actually the _return address_ of the main's callee function, i.e. `__libc_stat_main`.
 
-### Line 16: ret
+#### Line 16: ret
 
 Finally, the last line: the instruction `ret`! That last instruction is the equivalent of `pop eip`: it redirects the execution flow to the address stored at the top of the stack. This is meant to return to the callee, right after the `call` instruction.
 
@@ -448,7 +448,7 @@ The function `__libc_stat_main` is the initialization routine that starts the `m
 
 And voila, this was was the assembly translation for the `main` function of _hello-world.c_ by gcc 5.4.0! I hope this wasn't too painful for you to follow.
 
-### Wrap up
+#### Wrap up
 
 Reading line by line assembly is rather easy. The main complexity lies in building a comprehensive understanding of what the function \(or pieces of function\) does: putting all the lines together to make sense out of it and understanding what the developer intended to it.
 
@@ -467,9 +467,111 @@ Those extra lines are actually what you will struggle a lot when reversing appli
 
 ## Comments
 
+Comments in assembly start with a semi-colon \(`;`\). Comments are not multi-lines, so if you want to have comments on consecutive lines, you will simply need to use a semi-colon at each line. Comments can be placed on empty lines or behind an instruction:
+
+```text
+push   0x80484c0  ; Pointer to the string "Hello World!"
+call   0x80482e0  ; Call printf
+add    esp,0x4    ; Remove the pushed argument (i.e. "Hello World!")
+; The return address is now at the top of the stack
+ret
+```
+
 ## Variables
 
-## Math/Logic opertations
+There are three main areas where variables are located. Static/Global variables are located in a fix memory location \(usually in the _.data_ or _BSS_ segment\), arguments and local variables of functions are located in the stack, and finally, dynamically allocated variables are located in the heap.
+
+Unlike in C, compiled code \(without debug information\) do not have alias for variables. If you want to read or manipulate a variable, you need to provide the address where the variable is located \(or an offset that points to that memory location\).
+
+### Type verification
+
+Variables in assembly don't really have a type. Address point to binary data. The way you want to manipulate that data is entirely up to you. You could for instance execute a multiplication operation between two characters from a string. 
+
+One thing the CPU needs to know though is on how many bytes the instruction operates: **BYTE**, **WORD** or **D**ouble **WORD**.
+
+```text
+mov al,  BYTE PTR [esp] ; Copies the  4-bit value at the top of the stack in  AL
+mov ax,  WORD PTR [esp] ; Copies the 16-bit value at the top of the stack in  AX
+mov eax,DWORD PTR [esp] ; Copies the 32-bit value at the top of the stack in EAX
+```
+
+### Allocating memory
+
+Function variables are usually located in the stack. The size in memory depends on the type of the variable when declared in C. Whenever we enter a function, we usually have the _prolog_, which is preparing the stack frame, then we have the memory allocation, which basically subtract the total size of all function memory to the stack pointer.
+
+{% code-tabs %}
+{% code-tabs-item title="add.c" %}
+```c
+#include <stdio.h>
+
+void add(int, int); // Function prototype
+
+void main(int argc, char** argv)
+{
+    add(16, 26);
+}
+
+void add(int a, int b)
+{
+    int x, y, sum;
+    char sign;
+    
+    x = a;
+    y = b;
+    
+    sum = x + y;
+    
+    if(sum > 0)
+        sign = '+';
+    else
+        sign = ' ';
+    
+    printf("%d + %d = %c%d", x, y, sign, sum);
+}
+```
+{% endcode-tabs-item %}
+{% endcode-tabs %}
+
+If we look at the function add, we have 3 integers and 1 char. Integers are 4 bytes long and sign are 1 byte longs. We should therefore have \(3 x 4\) + 1 = 13 bytes allocated at the beginning of the function.
+
+```text
+$ gcc add.c -o add
+lab@lab-vm:~$ gdb -q add
+Reading symbols from add...(no debugging symbols found)...done.
+(gdb) set disassembly-flavor intel
+(gdb) disassemble add
+Dump of assembler code for function add:
+   0x08048434 <+0>:	push   ebp
+   0x08048435 <+1>:	mov    ebp,esp
+   0x08048437 <+3>:	sub    esp,0x18
+   ...
+```
+
+As you can see after the _prolog_, we subtract 0x18 to the the stack pointer... 0x18, not 0xd... why? The two main reasons why the allocated memory space doesn't match the total size of local variable are:
+
+1. Sometimes, variable doesn't need to be stored in the stack and registers are sufficient. In this case we would see less memory allocated. But this could also be the other way round, during the translation from C to assembly, the compiler might notice that extra memory should be allocated for intermediate variables that was not needed to declare in C.
+2. In order to keep the stack aligned, the compiler will allocate extra space in the stack so that stack pointer is a multiple of 16.
+
+In our case, the 0x18 bytes allocated instead of the 0xd bytes needed are most likely meant to keep the stack aligned:
+
+```text
+(gdb) break *0x08048439
+Breakpoint 1 at 0x8048439
+(gdb) run
+Starting program: /home/lab/add 
+
+Breakpoint 1, 0x08048439 in add ()
+(gdb) info registers esp 
+esp            0xbfffef18	0xbfffef18
+(gdb) nexti
+0x0804843a in add ()
+(gdb) info registers esp
+esp            0xbfffef00	0xbfffef00
+```
+
+As we can see, after the memory allocation, the stack is a multiple of 16.
+
+## Math/Logic operations
 
 ## Branching
 
@@ -484,4 +586,5 @@ Comparison Test Un/Signed integer
 * \[[1](https://stackoverflow.com/a/28475252)\] [https://stackoverflow.com/a/28475252](https://stackoverflow.com/a/28475252)
 * \[[2](https://en.wikipedia.org/wiki/Data_segment)\] [https://en.wikipedia.org/wiki/Data\_segment](https://en.wikipedia.org/wiki/Data_segment)
 * \[[3](https://stackoverflow.com/a/2136065)\] [https://stackoverflow.com/a/2136065](https://stackoverflow.com/a/2136065)
+* [ASCII](https://www.asciitable.xyz/) [https://www.asciitable.xyz/](https://www.asciitable.xyz/)
 
