@@ -302,20 +302,22 @@ When using the pointer name only, we get the memory address stored in the pointe
 
 As you can see in our last example, whenever we did `b = a;`, we copied the content stored in the variable `a` and stored into the variable `b`. We did not copy the address. So, later, whenever the variable `a` is modified, `b` still has the old value.
 
-## Math/Logic opertations
+## Math/Logic operations
 
-C language has native mathematic and logic operation available straight out of the box without using additional functions. Here are some examples with the operants `int a = 7;` and `int b = 10`, where the result is stored in `int res`.
+C language has native mathematic and logic operation available straight out of the box without using additional functions. Here are some examples with the operants `int a = 7;` and `int b = 10`, where the result is stored in `signed int res`.
 
-* **add**: `res = a + b; // res = 17`
-* **subtraction**: `res = a - b; // res = -3`
-* **multiplication**: `res = a * b; // res = 70`
-* **division**: `res = a / b; // res = 15`
+* **Addition**: `res = a + b; // res = 17`
+* **Subtraction**: `res = a - b; // res = -3`
+* **Multiplication**: `res = a * b; // res = 70`
+* **Incrementing**: `res = ++a; // a = 8`
+* **Decrementing**: `res = --a; // a = 6`
+* **Division**: `res = a / b; // res = 0`
 * **AND**: `res = a & b; // res = 2`
 * **OR**: `res = a | b; // res = 15`
-* **NOT**: `res = ~ a; // res = 15`
-* **XOR**: `res = a ^ b; // res = 15`
-* **left shift**: `res = a << b; // res = 15`
-* **right shift**: `res = a >> b; // res = 15`
+* **XOR**: `res = a ^ b; // res = 13`
+* **NOT**: `res = ~ a; // res = -8`
+* **Shift left**: `res = a << b; // res = 7168`
+* **Shift right**: `res = a >> b; // res = 0`
 
 {% hint style="info" %}
 The division resulted in an incorrect value. This is because we are dividing integer numbers and save the value in an integer variable.

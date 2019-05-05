@@ -427,6 +427,44 @@ The _XOR_ is a combination of _OR_, _AND_ and _NOT_ operations:
 
 Basically, the _XOR_ gate returns `true` only when a and b are different.
 
+### Shift operation
+
+The shift operation is different from the typical logical operations we've seen so far. In shift operations the digits are moved, or _shifted_, to the left or right depending on the sign used:
+
+* `<<`: shifting left
+* `>>`: shifting right
+
+{% hint style="info" %}
+This course only cover 32-bit architecture CPU, but for the sake of simplicity, we will use 8-bit example, but this also apply to 32-bit variables. 
+{% endhint %}
+
+Since we are working with values of fixed width, when shifting value left or right, we will _shift out_ and _shift in_ bits at each shifting iteration. In logical shift the the space are always filled with `0`.
+
+```text
+00110101 << 1 = 01101010 (in decimal: 53 << 1 = 106)
+00110101 << 2 = 11010100 (in decimal: 53 << 2 = 212)
+00110101 << 3 = 10101000 (in decimal: 53 << 3 = 168)
+00110101 >> 1 = 00011010 (in decimal: 53 >> 1 = 26)
+00110101 >> 2 = 00001101 (in decimal: 53 >> 2 = 13)
+00110101 >> 3 = 00000110 (in decimal: 53 >> 3 = 6)
+```
+
+However, in arithmetic shift operation, the right shift fills the space with the same value as the previous one. This is means so that signed integer keep their sign.
+
+```text
+10111010 >> 1 = 11011101
+10111010 >> 2 = 11101110
+10111010 >> 3 = 11110111
+```
+
+{% hint style="info" %}
+Shifting is often use for base 2 multiplication/division:
+
+* 42 &lt;&lt; 2 == $$42 × (2 ^ 2)$$ 
+* 1337 &lt;&lt; 5  == $$1337 × (2 ^ 5)$$ 
+* 80085 &gt;&gt; 4 == $$⌊ 80085 / (2 ^ 4) ⌋$$ 
+{% endhint %}
+
 This was the last logic operation for this course and the last section for this chapter. I hope you now have a better understanding of what a CPU is. In the next chapter, we will see how the memory is structured.
 
 ## References

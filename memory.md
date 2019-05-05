@@ -350,11 +350,25 @@ Instructions are stored one after another in memory, although not necessarily in
 
 Registers are small memory locations built into the CPU, which increase the read/write access speed \(typically within 1 CPU clock \[[15](https://techdifferences.com/difference-between-register-and-memory.html)\]\). Since this course cover 32-bit architectures only, registers are also 32-bit long.
 
-Most instructions executed by the CPU involve \(at least\) one register as operands. Besides the advantageous fast access to register, the design of the machine language does not allow memory-to-memory operations \[[16](https://www.quora.com/Why-can%E2%80%99t-two-operands-both-be-memory-operands-in-assembly-language)\]. So this means if we want to add two numbers, we won’t tell the CPU “_add_the value located at the address `0x11223344` with the value located at the address `0x44332211` and save the result in `0x12345678`”. Instead, we will tell the CPU “_move_ the value located at the address `0x11223344` in the register `DX`, then _add_ the value in the register `DX` with the value located at the address `0x44332211`” The instruction _add_ always saves the result in a particular register \(i.e. `AX`\) so we then have to tell the CPU “_move_ the value in the register `AX` to memory at the address `0x12345678`”
+Most instructions executed by the CPU involve \(at least\) one register as operand. Besides the advantageous fast access to register, the design of the machine language does not allow memory-to-memory operations \[[16](https://www.quora.com/Why-can%E2%80%99t-two-operands-both-be-memory-operands-in-assembly-language)\]. So this means if we want to add two values stored in memory, we won't tell the CPU: 
 
-{% hint style="info" %}
-We could also move both values in registers and execute the addition, but this would require one additional instruction.
+{% hint style="danger" %}
+_add_ the value located at the address `0x11223344` with the value located at the address `0x44332211` and save the result in `0x12345678`
 {% endhint %}
+
+Instead, we will tell the CPU: 
+
+{% hint style="success" %}
+_move_ the value located at the address `0x11223344` in the register `EDX`, then _add_ the value located at the address `0x44332211`with the value in the register `EDX`
+{% endhint %}
+
+The instruction _add_ always saves the result in the first operand \(i.e. memory location at `0x11223344`\), so we will have to tell the CPU:
+
+{% hint style="success" %}
+_move_ the content located at `0x11223344` and copy it at `0x12345678`
+{% endhint %}
+
+We could also move both values in registers and execute the addition, but this would require one additional instruction.
 
 32-bit architectures have the following registers:
 
