@@ -209,21 +209,21 @@ So this means a **double word** \(32 bits\) can be represented in hexadecimal wi
 
 As mentioned \(many many times\) already, the binary data stored in memory can be anything and have any size \(not only the ones mentioned\). Here are the most seen types.
 
-### Instruction
+#### Instruction
 
 Instructions are the operation read and executed by the CPU. This could be moving data in registers/memory locations, arithmetic operation, logic operation, decision making and redirection of execution flow. The size of an instruction usually varies between 1 to 15 bytes. Once the instruction is executed, the CPU read and execute the instruction right after unless execution flow has been redirected with the previous instruction. So instructions should be seen a single block executed straight, but rather as multiple instruction blocks that usually coincide with functions.
 
-### Integer
+#### Integer
 
-An integer is a whole number \(not fractional\) that can be positive, negative or 0. Integers can be of different size, but the most used one is 32-bit integer \(defined `int` in C\). An integer can be defined as _signed_ or _unsigned_. `unsigned int` integer are only positive \(or 0\) an goes from 0 \(`00000000000000000000000000000000`\) to 4,294,967,295 \(`11111111111111111111111111111111`\). `signed int`can be positive, negative or 0. The most significant bit is used to determine whether the number is positive or negative \(i.e. if the first bit is `0`, the integer is positive; if the first bit is `1`, the integer is negative\). Integers will described in more details in chapter Integer overflow.
+An integer is a whole number \(not fractional\) that can be positive, negative or 0. Integers can be of different size, but the most used one is 32-bit integer \(defined `int` in C\). An integer can be defined as _signed_ or _unsigned_. `unsigned int` integer are only positive \(or 0\) and goes from 0 \(`00000000000000000000000000000000`\) to 4,294,967,295 \(`11111111111111111111111111111111`\). `signed int`can be positive, negative or 0. The most significant bit is used to determine whether the number is positive or negative \(i.e. if the first bit is `0`, the integer is positive; if the first bit is `1`, the integer is negative\). Integers will described in more details in chapter Integer overflow.
 
-### Float
+#### Float
 
 Floats represent fractional values. You typically have the 32-bits _single precision_ \(`float` in C\) and the 64-bit _double precision_ \(`double` in C\) float values. A float is composed of 3 parts: the sign \(1 bit\), the exponent \(8 bits for _single precision_ and 11 bits for _double precision_\) and the fraction \(23 bits for the single precision and 52 bits for the _double precision_\).
 
 Here is the explanation for the conversion of [single precision](https://en.wikipedia.org/wiki/Single-precision_floating-point_format#Converting_from_single-precision_binary_to_decimal) and [double precision](https://en.wikipedia.org/wiki/Double-precision_floating-point_format#Exponent_encoding). You can play with float \(single and double\) here: [float toy](https://evanw.github.io/float-toy/).
 
-### Character
+#### Character
 
 A character \(`char` in C\) is typically one byte long. It \(usually\) contains one printable character using the ASCII encoding standard.
 
@@ -253,11 +253,11 @@ The hexadecimal set:
 
 So for instance, the character `A` \(uppercase\) is `0x41` in hexadecimal and the ASCII character `1` is not `0x01` but `0x31` in hexadecimal.
 
-### Array
+#### Array
 
 An array is basically a collection of variables of the same type. So for instance, an array of integers will simply be integers places one after each other in memory.
 
-### String
+#### String
 
 A string is an array of char that is terminated with the ASCII `NULL` character \(`0x00` in hexadecimal\). For instance, the string “Hello World” has the following structure.
 
@@ -284,19 +284,19 @@ Hello
 World
 ```
 
-### Boolean
+#### Boolean
 
 A boolean type can have one of two values, either `1` \(`true`\) or `0` \(`false`\). C doesn’t have a boolean type by default. So it is not uncommon to see boolean using 32 bits. The only value that matters is LSB \(least significant bit\).
 
-### Variable pointer
+#### Variable pointer
 
 You cannot provide a variable name to the CPU, it will not understand where to find the value in memory. Instead, the CPU receives directly the address of the variable in memory. So that means whenever you ask the CPU to add the variable `a` with the variable `b`, you will need to provide to the CPU the instruction `add`, the address where the variable `a` is located in memory, and the address where the variable `b` is located in memory. Since this course covers only i386 \(32-bit\) architecture, memory addresses are always 32 bits long. Variable pointers can also point to an array or a structure variable that contains multiple variables of different types.
 
-### Function pointer
+#### Function pointer
 
 We will see more about it in chapters [memory](memory.md) and assembly, but the instructions sent to the CPU are also located in memory alongside the variables \(although usually located in different sections\). So whenever a function is called, it is merely a jump to another area of the memory where the function’s instructions are located. A function pointer is an address \(32 bits\) of the memory where instructions are located.
 
-### Handle
+#### Handle
 
 Unlike pointers, which are memory addresses, a handle is an abstraction of a reference which is managed externally; its opacity allows the referent to be relocated in memory by the system without invalidating the handle, which is impossible with pointers. Typical usages of handles are for _file descriptors_, _network sockets_, _database connections_, _registry key \(Windows\)\_\_, and \_process identifiers_. Let’s take the example of an opened file, whenever you use `fopen("filename.ext", "r+");`\(in C\), the function will return a handle for that file. Next time the application will access \(e.g. read\) the file, it will send the handle \(instead of the filename or an address in memory\), and it will be up to the operating system to find the file based on the handle used as an index, access it and returns whatever the program requested. A pointer is usually an integer that is incremented each time a new handle is generated.
 
@@ -306,11 +306,11 @@ Unlike pointers, which are memory addresses, a handle is an abstraction of a ref
 | `7` | `File` | /tmp/JeIfwW |
 | `8` | `Directory` | /tmp/ |
 
-### Binary object
+#### Binary object
 
 We’ve just seen that whenever an application opens a file, it receive a handle instead of loading the file directly in memory. Accesses and changes to the actual file are done via the handle. However, in some case, it is necessary to have the file in memory. For instance, Photoshop needs to load the picture in memory so that it can display it within the application interface and perform changes \(changing luminosity, contrast, adding text/shape, etc\). Once the modifications are done, the user can save the picture. So the application uses the handle to write the actual files with the pictures loaded in memory \(so it overwrite the initial picture with the new one\). In this example, the binary object was a picture, but it could be many other things: image, video, sound, excel document, text file, etc.
 
-### Mis-typed data
+#### Mis-typed data
 
 Data in memory are pure binary. So if you run a program and start looking at the memory, there is no way you can know for sure the boundaries of all variables stored and their type. By this, I mean once the application stored a variable in the memory, this variable has a meaning in the context of the function that uses it \(e.g. an integer that represent the size of a file\). The pointer to this variable will be saved somewhere and the next time the function will read the variable, it will expect a value that represents the size of a file. But what if for some reason, in the meantime, this value has been entirely or partially overwritten with a string, e.g. “BAD”. This would mean the variable, which initially contains the size of a file, has been overwritten with the value `0x42414400`.
 
@@ -336,7 +336,7 @@ We’ve seen that the CPU \(actually the ALU\) is executing mathematic operation
 
 _Logic operations_ are mathematical operation in which the variable and result are boolean, i.e. either `true` \(`1`\) or `false` \(`0`\). The variable\(s\) are processed through a _gate_ which will execute a mathematical operation. The basic logic operations are: AND, OR, NOT. Based on those operations, other common operation can be built such as NAND, NOR, and XOR.
 
-### AND operation
+#### AND operation
 
 The _AND_ operation satisfies the following conditions:
 
@@ -352,7 +352,7 @@ The _AND_ operation satisfies the following conditions:
 
 Basically, the _AND_ gate returns `true` only if both a and b are `true`.
 
-### OR operation
+#### OR operation
 
 The _OR_ operation satisfies the following conditions:
 
@@ -368,7 +368,7 @@ The _OR_ operation satisfies the following conditions:
 
 Basically, the _OR_ gate returns `true` when at least one of the two arguments is `true`.
 
-### NOT operation
+#### NOT operation
 
 The _NOT_ operation only takes one argument and satisfies the following conditions:
 
@@ -382,7 +382,7 @@ The _NOT_ operation only takes one argument and satisfies the following conditio
 
 Basically, the _NOT_ gate inverts the value of a.
 
-### NAND operation
+#### NAND operation
 
 The _NAND_ is a combination of _NOT_ and _AND_ operations:
 
@@ -397,7 +397,7 @@ The _NAND_ is a combination of _NOT_ and _AND_ operations:
 
 Basically, the _NAND_ gate returns the invert of the _AND_ gate.
 
-### NOR operation
+#### NOR operation
 
 The _NOR_ is a combination of _NOT_ and _OR_ operations:
 
@@ -412,7 +412,7 @@ The _NOR_ is a combination of _NOT_ and _OR_ operations:
 
 Basically, the _NOR_ gate returns the invert of the _OR_ gate.
 
-### XOR operation
+#### XOR operation
 
 The _XOR_ is a combination of _OR_, _AND_ and _NOT_ operations:
 
@@ -427,7 +427,7 @@ The _XOR_ is a combination of _OR_, _AND_ and _NOT_ operations:
 
 Basically, the _XOR_ gate returns `true` only when a and b are different.
 
-### Shift operation
+#### Shift operation
 
 The shift operation is different from the typical logical operations we've seen so far. In shift operations the digits are moved, or _shifted_, to the left or right depending on the sign used:
 

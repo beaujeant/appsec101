@@ -32,7 +32,7 @@ A **binary application**, also known as **software**, is a collection of instruc
 
 A **security vulnerability** is a weakness which allows an attacker to reduce a system’s information assurance \[[2](https://en.wikipedia.org/wiki/Vulnerability_%28computing%29)\]. Typically, a vulnerability will allow an attacker to compromise the **C**​onfidentiality and/or the **I**​ntegrity and/or the **A**​vailability of a system, hence the [CIA](https://en.wikipedia.org/wiki/Information_security#Key_concepts) concept in IT security.
 
-For the sake of simplicity, this course will only cover applications running on Linux [i386](https://en.wikipedia.org/wiki/Intel_80386) \(32-bit architecture\). The high-level language used for demonstrations will be **C** since it is a widely known language that produces binary application relatively easy to understand. As for the [lab](lab-environment.md), we will exercise on an Ubuntu virtual environment.
+For the sake of simplicity, this course will only cover applications running on Linux [i386](https://en.wikipedia.org/wiki/Intel_80386) \(32-bit architecture\). The high-level language used for demonstrations will be **C** since it is a widely known language that produces binary application relatively easy to understand. As for the [lab](lab.md), we will exercise on an Ubuntu virtual environment.
 
 ## Licence
 

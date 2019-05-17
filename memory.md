@@ -7,7 +7,7 @@ Memory is a core component of a computer system. Without memory, there would be 
 
 While the storage contains the data at rest, the memory contains the data currently in used, including the instructions of all applications running and the data associated.
 
-So memory is the place where the data is stored. As we’ve seen in the chapter [Central Processing Unit](central-processing-unit.md), data could be anything: variable, image, instruction, etc. In the memory, there is nothing that explains what type of data is stored at any location. There is nothing that explains where the data start and where it ends. Most data type doesn’t have delimiter that tells “you reach the end of the variable”. So that means if you pick data at a random address in the memory, you shouldn’t be able to tell whether this value is meant to be an integer, an instruction or a string. Stored data only makes sense when manipulated by instructions.
+So memory is the place where the data is stored. As we’ve seen in the chapter [Central Processing Unit](cpu.md), data could be anything: variable, image, instruction, etc. In the memory, there is nothing that explains what type of data is stored at any location. There is nothing that explains where the data start and where it ends. Most data type doesn’t have delimiter that tells “you reach the end of the variable”. So that means if you pick data at a random address in the memory, you shouldn’t be able to tell whether this value is meant to be an integer, an instruction or a string. Stored data only makes sense when manipulated by instructions.
 
 ## ELF/PE file
 
@@ -417,11 +417,11 @@ The most important flags relevant for this course are:
 * **C**​arry **F**​lag \(CF\): indicates whether an arithmetic [carry](http://mathworld.wolfram.com/Carry.html) or [borrow](http://mathworld.wolfram.com/Borrow.html) has been done on the most significant bit position.
 * **P**​arity **F**​lag \(PF\): indicates whether the result of the last operation is even \(PF = `1`\) or odd \(PF = `0`\).
 * **Z**​ero **F**​lag \(ZF\): indicates whether the result of the last operation is zero \(ZF = `1`\) or otherwise \(ZF = `0`\).
-* **S**​ign **F**​lag \(SF\): indicates whether the result of the last operation has its most significant bit set to `1` \(SF = `1`\) or set to `0` \(SF = `0`\). As seen in chapter [CPU](central-processing-unit.md), a signed integer indicates its parity with the most-significant bit.
-* **T**​rap **F**​lag \(TF\): indicates whether the CPU is in single-step mode \(TF = `1`\) or not \(TF = `0`\). The single-step mode is used to debug applications. When set, the CPU will execute one instruction and then stop so that you can examine the memory and registers between each instruction. This flag is used by debugger tools such as GDB, which will be covered in the next chapter [lab](lab-environment.md).
-* **O**​verflow **F**​lag \(OF\): indicate whether an arithmetic overflow has occurred in the last operation. An overflow happens when two operands are added and the sign bit \(most-significant bit\) is flipped. If the expected result is a signed integer, the next operation will see the result as a negative number.
+* **S**​ign **F**​lag \(SF\): indicates whether the result of the last operation has its most significant bit set to `1` \(SF = `1`\) or set to `0` \(SF = `0`\). As seen in chapter [CPU](cpu.md), a signed integer indicates its parity with the most-significant bit.
+* **T**​rap **F**​lag \(TF\): indicates whether the CPU is in single-step mode \(TF = `1`\) or not \(TF = `0`\). The single-step mode is used to debug applications. When set, the CPU will execute one instruction and then stop so that you can examine the memory and registers between each instruction. This flag is used by debugger tools such as GDB, which will be covered in the next chapter [lab](lab.md).
+* **O**​verflow **F**​lag \(OF\): indicate whether an arithmetic overflow has occurred in the last operation. An overflow happens when two operands are added and the sign bit \(most-significant bit\) is flipped. If the expected result is a signed integer, the next operation will see the result as a negative number. \[[18](https://en.wikipedia.org/wiki/Overflow_flag)\]
 
-Remember the _ALU_ in chapter [CPU](central-processing-unit.md)? Well, _CF_, _PF_, _ZF_, _SF_ and _OF_ are part of the _status output_.
+Remember the _ALU_ in chapter [CPU](cpu.md)? Well, _CF_, _PF_, _ZF_, _SF_ and _OF_ are part of the _status output_.
 
 ## References
 
@@ -456,4 +456,5 @@ Remember the _ALU_ in chapter [CPU](central-processing-unit.md)? Well, _CF_, _PF
 * \[[17](https://en.wikibooks.org/wiki/X86_Assembly/X86_Architecture#x86_Architecture)\] https://en.wikibooks.org/wiki/X86\_Assembly/X86\_Architecture\#x86\_Architecture
 * [carry](http://mathworld.wolfram.com/Carry.html) http://mathworld.wolfram.com/Carry.html
 * [borrow](http://mathworld.wolfram.com/Borrow.html) http://mathworld.wolfram.com/Borrow.html
+* \[[18](https://en.wikipedia.org/wiki/Overflow_flag)\] https://en.wikipedia.org/wiki/Overflow\_flag
 

@@ -2,13 +2,13 @@
 
 Assembly is a vast topic. We could spend hours, days, month and we still would have plenty to say about. Nevertheless, this is not a reverse engineering course and I’m myself not particularly fluent in assembly, so this course will cover the bare minimum to understand and exploit the vulnerabilities listed for this course, i.e. buffer overflow, format string, use after free and integer over/underflow.
 
-As seen in the [CPU](central-processing-unit.md) chapter, instructions are sent to the CPU in the form of binary values of one or multiple bytes. Each binary instruction correspond to one assembly instruction. It is therefore possible to translate binary instructions directly into assembly instructions and the other way round. There is a one-to-one relation between binary instructions sent to CPU and assembly instructions, which is not the case for the relation between C and binary instruction. For instance, this single code line `c = 4 + 2;` in C can be translated in several ways and it will be composed of more than one binary instruction \(CPU operation\).
+As seen in the [CPU](cpu.md) chapter, instructions are sent to the CPU in the form of binary values of one or multiple bytes. Each binary instruction correspond to one assembly instruction. It is therefore possible to translate binary instructions directly into assembly instructions and the other way round. There is a one-to-one relation between binary instructions sent to CPU and assembly instructions, which is not the case for the relation between C and binary instruction. For instance, this single code line `c = 4 + 2;` in C can be translated in several ways and it will be composed of more than one binary instruction \(CPU operation\).
 
 {% hint style="info" %}
 The translation from binary instructions to its assembly representation is called _to disassemble_, while the other way, i.e. the translation from assembly instructions to their binary instructions is called _to assemble_.
 {% endhint %}
 
-Programs can be developped entirely in assembly. However, if you simply translate assembly instructions to their corresponding binary instructions, the final binary file won't be executable. For this, you need to build a [ELF file](memory.md#elf-pe-file), embed the translated instructions together with _initialized data_ and _global variables_, map the data, build the import table, etc. This is the role of the _compiler_ and _linker_ to do this, but this is another story. In this course we don't want to learn assembly to build application, instead, we want to learn how to read and understand compiled code, which is different a exercise and requires slightly different knowledge and skills in assembly.
+Programs can be developed entirely in assembly. However, if you simply translate assembly instructions to their corresponding binary instructions, the final binary file won't be executable. For this, you need to build a [ELF file](memory.md#elf-pe-file), embed the translated instructions together with _initialized data_ and _global variables_, map the data, build the import table, etc. This is the role of the _compiler_ and _linker_ to do this, but this is another story. In this course we don't want to learn assembly to build application, instead, we want to learn how to read and understand compiled code, which is different a exercise and requires slightly different knowledge and skills in assembly.
 
 An assembly instruction is represented with the following syntax:
 
@@ -308,7 +308,7 @@ Let see the instruction `call` in action:
 0xbfffef1c:	0x08048429	0x080484c0	0xbfffefe4
 ```
 
-In lines 1-4, I print the current and the next two instructions. We can see that the instruction pointer is not pointing to the `call 0x80482e0`. In line 5-6, I print the first 3 words on top of the stack. As seen in the [previous instruction](assembly.md#line-9-push-0x-80484-c0), the last `push` to the stack was with the pointer to "Hello World!", i.e. `0x080484c0`. We then execute the `call` instruction in line 7 with the GDB command `stepi` and **not** `nexti` \(see the difference in chater [lab](lab-environment.md#gdb)\). One the command executed, we can see in lines 9-12 that the instruction pointer is now pointer to `0x80482e0`, the first operand of the executed `call` instruction. Finally, we see in lines 13-14 that the address of the instruction located right \(i.e. `0x08048429`\) after the call instruction has been pushed to the stack.
+In lines 1-4, I print the current and the next two instructions. We can see that the instruction pointer is not pointing to the `call 0x80482e0`. In line 5-6, I print the first 3 words on top of the stack. As seen in the [previous instruction](assembly.md#line-9-push-0x-80484-c0), the last `push` to the stack was with the pointer to "Hello World!", i.e. `0x080484c0`. We then execute the `call` instruction in line 7 with the GDB command `stepi` and **not** `nexti` \(see the difference in chater [lab](lab.md#gdb)\). One the command executed, we can see in lines 9-12 that the instruction pointer is now pointer to `0x80482e0`, the first operand of the executed `call` instruction. Finally, we see in lines 13-14 that the address of the instruction located right \(i.e. `0x08048429`\) after the call instruction has been pushed to the stack.
 
 ![Stack at the beginning of printf](.gitbook/assets/main-stack-5.png)
 
@@ -797,7 +797,7 @@ imul ebx, [eax], 0x3 ; ebx = 0x000039a5
 imul ebx, [0xbfff1122], 0x3 ; ebx = 0x000039a5
 ```
 
-#### imul - integer division
+#### idiv - integer division
 
 The `idiv` instruction divides the 64-bits register concatenation `edx`:`eax` by the operand reference value. The quotient result is stored in `eax` and the reminder is stored in `edx`.
 
@@ -927,11 +927,497 @@ shr DWORD PTR [0xbfff1122], cl   ; eax = 0x00000266
 
 ## Branching
 
-Comparison Test Un/Signed integer
+In assembly, [branching](programming.md#branching) can be done with jump instructions. **Jump** instructions redirect the execution flow by \(indirectly\) overwriting `eip` with the operand. 
+
+{% hint style="info" %}
+The operand can be a direct memory address or an offset to the current instruction. However, when reversing with a disassembler or debugger, the tool will usually calculate the offset and print the resolved address.
+{% endhint %}
+
+Except for the `jmp` instruction, all jump instructions are **conditional**. This means the jump \(i.e. redirection\) is taken only if the condition\(s\) are met, otherwise, the CPU just move to the next instruction. Those conditions are solely based on the [EFLAG](memory.md#flags-register) register's values, e.g.: 
+
+* SF == 1 \(did the last operation resulted with a negative value?\)
+* ZF == 0 \("did the last operation resulted with zero?"\)
+
+I forgot to mention but all arithmetic or logical operations mentioned [earlier](assembly.md#math-logic-operations) update one or more flags from the [EFLAG](memory.md#flags-register) register. Here is a short recap of flags relevant for this chapter:
+
+* **Z**​ero **F**​lag \(**ZF**\): indicates whether the result of the last operation is zero \(**ZF** = `1`\) or otherwise \(**ZF** = `0`\).
+* **S**​ign **F**​lag \(**SF**\): indicates whether the result of the last operation has its most significant bit set to `1` \(**SF** = `1`\) or set to `0` \(**SF** = `0`\)
+* **C**​arry **F**​lag \(**CF**\): indicates whether an arithmetic [carry](http://mathworld.wolfram.com/Carry.html) or [borrow](http://mathworld.wolfram.com/Borrow.html) has been done on the most significant bit position.
+* **O**​verflow **F**​lag \(**OF**\): indicates whether an arithmetic overflow has occurred in the last operation. More info about what is an arithmetic overflow in chapter [integer overflow](integer-overflow.md).
+
+Now, let's say we have a program that verifies a PIN code. If the PIN is correct \(_first_ branch\), `ebx` is set to `true` with the value `0x00000001`, otherwise, if the PIN is incorrect \(_second_ branch\), `ebx` is set to `false` with the value `0x00000000`. The PIN entered by the user is stored in `eax`. The valid PIN is 1234 \(0x4d2 in hexadecimal\).
+
+For this, what we can do is to subtract 1234 to `eax`. The `sub` instruction will update the EFLAG register accordingly. 
+
+```text
+0x08048400: 2d d2 04 00 00    sub eax, 0x4d2
+0x08048405: 74 07             jz 0x0804840e
+0x08048407: bb 00 00 00 00    mov ebx, 0
+0x0804840c: eb 05             jmp 0x08048413
+0x0804840e: bb 01 00 00 00    mov ebx, 1
+0x08048413: ...               ...
+```
+
+{% hint style="info" %}
+The first "column" contains the addresses where the instructions are located in memory. I arbitrary choose the first address to be`0x08048400`. The third "column" contains the instruction in assembly and the second "column" contains the actual machine instructions in memory read by the CPU. Here, the jump instructions \(second and fourth lines\) are using offset, so the first `jz` instruction first instance, is not really `jz 0x0804840e`, but actually `jz $+7`, where `$` means the current instruction and `+7` is the offset, so 0x08048405 + 7 = 0x0804840e.
+{% endhint %}
+
+Back to the assembly code: we first subtract 1234 to `eax`. If `eax` contains the value 1234 \(the valid PIN\), the result will be 0, so the `sub` instruction will set the zero flag \(**ZF**\) to `1`. If it is any other value, the `sub` instruction will set **ZF** to `0`. 
+
+Once the subtraction done, we use the jump instruction `jz 0x0804840e`, i.e. "jump to 0x0804840e if the last operation resulted with 0". So basically, if `eax` contained 1234, the execution flow is redirected to `0x0804840e`, otherwise we move to the next instruction at `0x08048407`.
+
+`0x0804840e` is the _first_ branch were `ebx` is set to true while `0x08048407` is the _second_ branch where `ebx` is set to false. The thing is we placed the _first_ branch in the memory right after the _second_ branch, so if we took the _second_ branch \(i.e. PIN is not equal to 1234\), we need to place an unconditional jump at the end of the branch to skip the _first_ one.
+
+![Same code, three examples](.gitbook/assets/branch-examples.gif)
+
+### Jump instructions
+
+In our last example, we used `jz`, but there are a more jump instructions with different conditions. All of them have the same structure: the jump instruction followed by one operand – the destination where the execution is redirected if condition\(s\) are met.
+
+{% hint style="info" %}
+Some memory locations cannot be used as destination. For instance, [kernel space](memory.md#kernel-and-user-land) or memory areas that are set as non-executable.
+{% endhint %}
+
+#### jmp - unconditional jump
+
+Unlike all other jump instructions, `jmp` will redirect the execution flow unconditionally. This means once the instruction executed, the execution will be redirected to the address indicated by the operand.
+
+#### jz - jump if zero
+
+The `jz` instruction takes the jump whenever the last operation executed resulted with a 0. So, the instruction check if the **Z**ero **F**lag \(**ZF**\) is `true`.
+
+```text
+mov eax, 0x1234
+sub eax, 0x1234
+jz 0x08048400 ; jump is taken
+```
+
+```text
+mov eax, 0x1234
+sub eax, 0x4321
+jz 0x08048400 ; jump is NOT taken
+```
+
+#### je - jump if equal
+
+The `je` instruction is the exact same instruction as `jz`. When translated, the machine code is identical.
+
+#### jne - jump if not zero
+
+The `jne` instruction does the exact opposite of `je`, i.e. it jumps if the last operation executed resulted in something different than 0. So, the jump is taken if the **Z**ero **F**lag \(**ZF**\) is `false`.
+
+```text
+mov eax, 0x1234
+sub eax, 0x1234
+jne 0x08048400 ; jump is NOT taken
+```
+
+```text
+mov eax, 0x1234
+sub eax, 0x4321
+jne 0x08048400 ; jump is taken
+```
+
+#### jg - jump if greater \(with signed integer\)
+
+Integer values can be compared either as a _signed_ integer or _unsigned_ integer. In order to evaluate which value is greater/higher than another one with **signed** integer, we can use once again the `sub` instruction and look if the **S**ign **F**lag \(**SF**\) has the same value as the **O**verflow **F**lag \(**OF**\). We will see later in chapter [integer overflow](integer-overflow.md) why using those flag registers, but for now, just trust me, it works.
+
+The `jg` instruction also check a third flag, the **Z**ero **F**lag \(**ZF**\). Indeed, the condition verifies if the first operand is greater than the second, so if the they are equals, this doesn't work. So, the jump is taken if **SF**=**OF** _AND_ if **ZF**=`false`.
+
+```text
+mov eax, 0x123
+sub eax, 0x42
+jg 0x08048400 ; jump is taken
+```
+
+```text
+mov eax, 0x42
+sub eax, 0x123
+jg 0x08048400 ; jump is NOT taken
+```
+
+```text
+mov eax, 0x123
+sub eax, 0x123
+jg 0x08048400 ; jump is NOT taken
+```
+
+```text
+mov eax, 0x99887766 ; negative number (if signed)
+sub eax, 0x42
+jg 0x08048400       ; jump is NOT taken
+```
+
+#### jge - jump if greater or equal \(with signed integer\)
+
+The `jge` instruction works like `jg`, except that the condition also accept if **ZF**=1. So, the jump is taken if **SF**=**OF** _OR_ if **ZF**=`true`.
+
+```text
+mov eax, 0x123
+sub eax, 0x42
+jg 0x08048400 ; jump is taken
+```
+
+```text
+mov eax, 0x42
+sub eax, 0x123
+jg 0x08048400 ; jump is NOT taken
+```
+
+```text
+mov eax, 0x123
+sub eax, 0x123
+jg 0x08048400 ; jump is taken
+```
+
+```text
+mov eax, 0x99887766 ; negative number (if signed)
+sub eax, 0x42
+jg 0x08048400       ; jump is NOT taken
+```
+
+#### jl - jump if lower \(with signed integer\)
+
+The jump is taken when **SF** is different than **OF**.
+
+```text
+mov eax, 0x123
+sub eax, 0x42
+jg 0x08048400 ; jump is NOT taken
+```
+
+```text
+mov eax, 0x42
+sub eax, 0x123
+jg 0x08048400 ; jump is taken
+```
+
+```text
+mov eax, 0x123
+sub eax, 0x123
+jg 0x08048400 ; jump is NOT taken
+```
+
+```text
+mov eax, 0x99887766 ; negative number (if signed)
+sub eax, 0x42
+jg 0x08048400       ; jump is taken
+```
+
+#### jle - jump if lower or equal \(with signed integer\)
+
+The jump is taken when **SF** is different than **OF** _OR_ if **ZF**= `true`.
+
+```text
+mov eax, 0x123
+sub eax, 0x42
+jg 0x08048400 ; jump is NOT taken
+```
+
+```text
+mov eax, 0x42
+sub eax, 0x123
+jg 0x08048400 ; jump is taken
+```
+
+```text
+mov eax, 0x123
+sub eax, 0x123
+jg 0x08048400 ; jump is taken
+```
+
+```text
+mov eax, 0x99887766 ; negative number (if signed)
+sub eax, 0x42
+jg 0x08048400       ; jump is taken
+```
+
+#### ja - jump if above \(with unsigned integer\)
+
+When comparing **unsigned** integer, the jump instruction will check other flags than `jg`. Once again, we will have a closer look at it in chapter [integer overflow](integer-overflow.md), but basically, `ja` check if the **C**arry **F**lag \(CF\) is `false`.  Since the condition doesn't include equality, the instruction will also check if the **Z**ero **F**lag is `false`. So, the jump is taken if **CF**=`false` _AND_ if **ZF**=`false`.
+
+```text
+mov eax, 0x123
+sub eax, 0x42
+jg 0x08048400 ; jump is taken
+```
+
+```text
+mov eax, 0x42
+sub eax, 0x123
+jg 0x08048400 ; jump is NOT taken
+```
+
+```text
+mov eax, 0x123
+sub eax, 0x123
+jg 0x08048400 ; jump is NOT taken
+```
+
+```text
+mov eax, 0x99887766 ; negative number (if signed)
+sub eax, 0x42
+jg 0x08048400       ; jump is taken
+```
+
+#### jae - jump if above or equal \(with unsigned integer\)
+
+The `jae` instruction works like `ja`, except that the condition also accept if **ZF**=1. So, the jump is taken if **CF**=`false` _OR_ if **ZF**=`true`.
+
+```text
+mov eax, 0x123
+sub eax, 0x42
+jg 0x08048400 ; jump is taken
+```
+
+```text
+mov eax, 0x42
+sub eax, 0x123
+jg 0x08048400 ; jump is NOT taken
+```
+
+```text
+mov eax, 0x123
+sub eax, 0x123
+jg 0x08048400 ; jump is taken
+```
+
+```text
+mov eax, 0x99887766 ; negative number (if signed)
+sub eax, 0x42
+jg 0x08048400       ; jump is taken
+```
+
+#### jb - jump if below \(with unsigned integer\)
+
+The jump is taken when **CF**=`true`.
+
+```text
+mov eax, 0x123
+sub eax, 0x42
+jg 0x08048400 ; jump is NOT taken
+```
+
+```text
+mov eax, 0x42
+sub eax, 0x123
+jg 0x08048400 ; jump is taken
+```
+
+```text
+mov eax, 0x123
+sub eax, 0x123
+jg 0x08048400 ; jump is NOT taken
+```
+
+```text
+mov eax, 0x99887766 ; negative number (if signed)
+sub eax, 0x42
+jg 0x08048400       ; jump is NOT taken
+```
+
+#### jbe - jump if below or equal \(with unsigned integer\)
+
+The jump is taken when **CF**=`true` _OR_ if **ZF**= `true`.
+
+```text
+mov eax, 0x123
+sub eax, 0x42
+jg 0x08048400 ; jump is NOT taken
+```
+
+```text
+mov eax, 0x42
+sub eax, 0x123
+jg 0x08048400 ; jump is taken
+```
+
+```text
+mov eax, 0x123
+sub eax, 0x123
+jg 0x08048400 ; jump is taken
+```
+
+```text
+mov eax, 0x99887766 ; negative number (if signed)
+sub eax, 0x42
+jg 0x08048400       ; jump is NOT taken
+```
+
+#### jo - jump if overflow
+
+The jump is taken when **OF**=`true` .
+
+#### jno - jump if not overflow
+
+The jump is taken when **OF**=`false` .
+
+#### js - jump if signed
+
+The jump is taken when **SF**=`true` .
+
+#### jns - jump if overflow
+
+The jump is taken when **SF**=`false` .
+
+### Comparison instruction
+
+So far, whenever we wanted to compare two values, we used the instruction `sub` to set the flag register accordingly. However, the `sub` instruction overwrites the first operand with the result in the process, which might sometime be a bit annoying if you want to use the register later. So, instead of using sub, you could also use the instruction `cmp` or `test`.
+
+#### cmp
+
+The `cmp` instruction is basically executing the subtraction operation, altering the register flag but discarding the result, which thus preserve the first operand.
+
+```text
+mov eax, 0x42
+mov ebx, 0x1337
+cmp eax, ebx
+; eax=0x42 ebx=0x1337 SF=1 ZF=0 CF=1 OF=0
+```
+
+This instruction is mainly meant for comparison. 
+
+#### test
+
+The test instruction is a bit like the `cmp`, except that it executes an `and` operation instead of `sub`. Here again, the flags register is altered but the result is not saved.
+
+```text
+mov eax, 0x42
+mov ebx, 0x1337
+test eax, ebx
+; eax=0x42 ebx=0x1337 SF=0 ZF=0 CF=0 OF=0
+```
+
+You might wonder in which cases to use `test`. Well, `test` is often used to verify if a value is equal to zero. We could of course use `cmp eax, 0`,  but it turns out that the compiler often uses `test eax,eax` instead. The operation `and eax, eax` would returns 0 \(i.e. **ZF**=1\) if and only if `eax` is equal to 0.
 
 ## Loop
 
+Loops are done with comparison and jump instructions where jump instruction is usually located at the end of the loop and the destination operand points at the beginning of it. For instance, the following `while` loop...
+
+```text
+int a = 0;
+int b = 0;
+
+while(a < 5)
+{
+    b = b + 0x42;
+    ++a;
+}
+```
+
+... could be translated like this...
+
+```text
+0x08048400: sub esp, 8 ; Allocate space in stack for vars a and b
+0x08048403: mov DWORD PTR [ebp-4], 0
+0x0804840a: mov DWORD PTR [ebp-8], 0
+0x08048411: jmp 0x0804841a
+0x08048413: add DWORD PTR [ebp-8], 0x42
+0x08048417: inc DWORD PTR [ebp-4]
+0x0804841a: cmp DWORD PTR [ebp-4], 5
+0x0804841e: jl 0x08048413
+```
+
+{% hint style="info" %}
+We had to use an unconditional jump to skip the content of the loop and jump straight to the loop condition. This is because at the beginning, we don't know if the loop should be executed at least once, so we first verify it.
+{% endhint %}
+
+The following `for` loop could be translated the exact same way:
+
+```text
+int b = 0;
+
+while(int a = 0; a < 5; ++a)
+{
+    b = b + 0x42;
+}
+```
+
+However, the `do...while` loop will be slightly different since the code inside the loop will be executed at least once. So, in this case, we don't need the unconditional jump anymore at the beginning just before the loop:
+
+```text
+int a = 0;
+int b = 0;
+
+do
+{
+    b = b + 0x42;
+    ++a;
+} while ( a < 5 );
+```
+
+```text
+0x08048400: sub esp, 8 ; Allocate space in stack for vars a and b
+0x08048403: mov DWORD PTR [ebp-4], 0
+0x0804840a: mov DWORD PTR [ebp-8], 0
+0x08048411: add DWORD PTR [ebp-8], 0x42
+0x08048415: inc DWORD PTR [ebp-4]
+0x08048418: cmp DWORD PTR [ebp-4], 5
+0x0804841c: jl 0x08048411
+```
+
+We could further optimise this loop by decrementing the counter instead of incrementing. Since arithmetic \(and logical\) operation update the register flags, we could simply start the counter at 5 and decrement at each iteration. Until the counter reach 0, the **Z**ero **F**lag won't be set, so we don't need to use a `cmp` instruction but only the `jnz`:
+
+```text
+int a = 5;
+int b = 0;
+
+do
+{
+    b = b + 0x42;
+    --a;
+} while ( a > 0 );
+```
+
+```text
+0x08048400: sub esp, 8 ; Allocate space in stack for vars a and b
+0x08048403: mov DWORD PTR [ebp-4], 5
+0x0804840a: mov DWORD PTR [ebp-8], 0
+0x08048411: add DWORD PTR [ebp-8], 0x42
+0x08048415: dec DWORD PTR [ebp-4]
+0x08048418: jl 0x08048411
+```
+
+But we could optimise even more by using the `loop` instruction. The `loop` instruction is the equivalent of the following instructions:
+
+```text
+dec ecx
+jnz destination
+```
+
+It uses the register `ecx` as counter and decrement it. As long as the counter doesn't reach 0, it will jump back to where the operand is pointing \(i.e. the beginning of the loop\). Once `ecx` has been decremented down to 0, the `loop` instruction won't jump and the execution flow will continue.
+
+```text
+0x08048400: sub esp, 4 ; Need to allocate memory to only one integer
+0x08048403: mov ecx, 5
+0x08048408: mov DWORD PTR [ebp-4], 0
+0x0804840f: add DWORD PTR [ebp-4], 0x42
+0x08048413: loop 0x0804840f
+```
+
 ## Functions
+
+We've already explained multiple times how functions are called in assembly since it is a key element for this course, but this chapter will gather everything we've mentioned so far about it.
+
+GET BACK TO ALLOCATING MEM AND GIVE EXAMPLE ALLOC ARRAY
+
+symbol
+
+imported
+
+exported
+
+call instruction
+
+return address
+
+argument
+
+returned value
+
+Once call, allocating memory space
+
+Once done, cleaning the stack
 
 ## References
 

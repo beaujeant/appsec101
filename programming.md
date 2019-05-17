@@ -113,7 +113,7 @@ Before a variable is used, it has to be **declared**. The syntax for declaring a
 int number;
 ```
 
-You will find a list of the different types of variable in chapter [CPU](central-processing-unit.md). _Integer_ are declared with `int`, _float_with `float`, _characters_ with `char` and _boolean_ with `bool`.
+You will find a list of the different types of variable in chapter [CPU](cpu.md). _Integer_ are declared with `int`, _float_with `float`, _characters_ with `char` and _boolean_ with `bool`.
 
 {% hint style="info" %}
 More types are available, but those are the most used.
@@ -379,7 +379,7 @@ table[99] = 0;
 table[100] = 0;
 ```
 
-In this example, you would have a long repetitive list of instructions. If you suddenly want to initialize the array with the value `2` instead of `0`, you would have to change 100 lines. Furthermore, what if you don’t know the size of the array and this depends on the user input? You wouldn’t be able to predict the size of the array and write the correct amount of line. Instead, you could use the `for`, the `while` or the `do-while` loop. Both loops take one or more conditions \(like `if/else`\). The condition dictates whether the loop should reiterate or not.
+In this example, you would have a long repetitive list of instructions. If you suddenly want to initialize the array with the value `2` instead of `0`, you would have to change 100 lines. Furthermore, what if you don’t know the size of the array and this depends on the user input? You wouldn’t be able to predict the size of the array and write the correct amount of line. Instead, you could use the `for`, the `while` or the `do-while` loop.  Loops take one or more conditions \(like `if/else`\). The condition dictates whether the loop should reiterate or not.
 
 ```c
 int table[100];
@@ -756,7 +756,7 @@ The function `main` is usually expected to return an _exit status_ \(`0` if the 
 * `argc`: an integer which contains the number of arguments sent
 * `argv`: an array of `char` pointer which are the actual arguments sent
 
-We’ve seen earlier in chapter [CPU](central-processing-unit.md), strings are actually an array of `char` terminated with a NULL character \(`0x00`\). And as we’ve seen in this chapter, whenever we use the name of an array without brackets, this is actually a pointer to the first element of that array. Whenever we deal with a string, we usually send the pointer and not a single element of the array. So the argument `char *argv[]` can be considered as an array of strings, where `argv[0]` is the first argument, `argv[1]` the second, etc.
+We’ve seen earlier in chapter [CPU](cpu.md), strings are actually an array of `char` terminated with a NULL character \(`0x00`\). And as we’ve seen in this chapter, whenever we use the name of an array without brackets, this is actually a pointer to the first element of that array. Whenever we deal with a string, we usually send the pointer and not a single element of the array. So the argument `char *argv[]` can be considered as an array of strings, where `argv[0]` is the first argument, `argv[1]` the second, etc.
 
 Here is an example to print all program arguments:
 
