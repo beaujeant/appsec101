@@ -565,7 +565,7 @@ Dump of assembler code for function add:
    ...
 ```
 
-As you can see after the _prolog_, we subtract 0x18 to the the stack pointer... 0x18, not 0xd... why? The two main reasons why the allocated memory space doesn't match the total size of local variable are:
+As you can see after the _prolog_, we subtract 0x18 to the the stack pointer... 0x18, not 0xd... why? The two main reasons why the allocated memory space doesn't match the total size of local variable\(s\) are:
 
 1. Sometimes, variable doesn't need to be stored in the stack and registers are sufficient. In this case we would see less memory allocated. But this could also be the other way round, during the translation from C to assembly, the compiler might notice that extra memory should be allocated for intermediate variables that was not needed to declare in C.
 2. In order to keep the stack aligned, the compiler will allocate extra space in the stack so that stack pointer is a multiple of 16.
@@ -594,6 +594,29 @@ Once the memory allocated, local variables are usually first referenced as an of
 The order of the variables in the stack doesn't necessary match the order when variables are declared in the C code. For instance, in our last program, the stack looked like this:
 
 ![add stack](.gitbook/assets/stack-add.png)
+
+Local variables can also contain arrays or a custom structures. Let's consider the following code:
+
+```c
+#include <stdio.h>
+
+void print_hello(); // Function prototype
+
+void main(int argc, char** argv)
+{
+    print_hello();
+}
+
+void print_hello()
+{
+    char hello[] = "Hello world, welcome to appsec101!";
+    printf("var hello: %s", hello);
+}
+```
+
+Here in this case, the function `print_hello` has only one local variable: an array of 35 chars \(don't forget to count the last `NULL` character\). When looking at the disassembled code, we see that it allocates 56 bytes \(0x38\) instead of 35. Here is how the stack looks like.
+
+
 
 ### Assigning value
 
@@ -1398,6 +1421,10 @@ It uses the register `ecx` as counter and decrement it. As long as the counter d
 ## Functions
 
 We've already explained multiple times how functions are called in assembly since it is a key element for this course, but this chapter will gather everything we've mentioned so far about it.
+
+In order to call a function, you simply need to use the instruction `call`. The `call` instruction takes one operand: the address of the function \(i.e. the address of the first instruction at the beginning of the function\). The called function can be a local function written in the C code or an imported function from an external library.
+
+When reversing 
 
 GET BACK TO ALLOCATING MEM AND GIVE EXAMPLE ALLOC ARRAY
 
