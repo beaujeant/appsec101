@@ -1424,7 +1424,29 @@ We've already explained multiple times how functions are called in assembly sinc
 
 In order to call a function, you simply need to use the instruction `call`. The `call` instruction takes one operand: the address of the function \(i.e. the address of the first instruction at the beginning of the function\). The called function can be a local function written in the C code or an imported function from an external library.
 
-When reversing 
+#### Symbol & relocation
+
+When reversing an application, `gdb` \(as well as other disassemblers/debuggers\) might sometime be able to display the actual function name instead of the address \(or offset\). For instance, whenever we call the function `print_hello`, the call operand is automatically resolved by `gdb` as `call print_hello`. This name resolution is possible thanks to the **symbol table**. The symbol table is built by the compiler to associate compiled data \(memory address\) with its initial declaration/representation in the source code, e.g. the **FUNC**tion named `print_hello` starts at `0x0804848b`. So, whenever gdb disassembles the function main, it resolves the address pointed by the call operand and look up the symbol table to see there is any function associate to that address.
+
+To display the symbol table, you can use the command `readelf` with the option `-s`:
+
+```text
+$ readeld -s hello
+
+[...]
+
+Symbol table '.symtab' contains 71 entries:
+   Num:    Value  Size Type    Bind   Vis      Ndx Name
+    [...]
+    64: 0804848b   123 FUNC    GLOBAL DEFAULT   14 print_hello
+    65: 0804a020     0 NOTYPE  GLOBAL DEFAULT   26 __bss_start
+    66: 0804846b    32 FUNC    GLOBAL DEFAULT   14 main
+    [...]
+```
+
+For the imported functions such as `printf`, the name resolution works a little bit differently. The [dynamic linkage](https://www.technovelty.org/linux/plt-and-got-the-key-to-code-sharing-and-dynamic-libraries.html) of imported function might be a bit complex and irrelevant for this beginner course on application security, but basically, `gdb` uses the **relocation table** to resolve name for imported functions.
+
+
 
 GET BACK TO ALLOCATING MEM AND GIVE EXAMPLE ALLOC ARRAY
 
@@ -1455,4 +1477,5 @@ Once done, cleaning the stack
 * [ASCII](https://www.asciitable.xyz/) [https://www.asciitable.xyz/](https://www.asciitable.xyz/)
 * [Two's complement](https://en.wikipedia.org/wiki/Two%27s_complement): [https://en.wikipedia.org/wiki/Two%27s\_complement](https://en.wikipedia.org/wiki/Two%27s_complement)
 * [https://www.cs.virginia.edu/~evans/cs216/guides/x86.html](https://www.cs.virginia.edu/~evans/cs216/guides/x86.html)
+* [dynamic linkage](https://www.technovelty.org/linux/plt-and-got-the-key-to-code-sharing-and-dynamic-libraries.html): https://www.technovelty.org/linux/plt-and-got-the-key-to-code-sharing-and-dynamic-libraries.html
 
