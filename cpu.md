@@ -469,11 +469,11 @@ This was the last logic operation for this course and the last section for this 
 
 ## References
 
-* [roll film](https://en.wikipedia.org/wiki/Roll_film) https://en.wikipedia.org/wiki/Roll\_film
+* [roll film](https://en.wikipedia.org/wiki/Roll_film): https://en.wikipedia.org/wiki/Roll\_film
 * \[[1](https://hashnode.com/post/why-do-computers-understand-only-0-and-1-logic-cj4zcejn100kuomwu3z70cjan)\] https://hashnode.com/post/why-do-computers-understand-only-0-and-1-logic-cj4zcejn100kuomwu3z70cjan
-* [Arabic numerals](https://en.wikipedia.org/wiki/Arabic_numerals) https://en.wikipedia.org/wiki/Arabic\_numerals
+* [Arabic numerals](https://en.wikipedia.org/wiki/Arabic_numerals): https://en.wikipedia.org/wiki/Arabic\_numerals
 * \[[2](https://en.wikipedia.org/wiki/Bit_numbering)\] https://en.wikipedia.org/wiki/Bit\_numbering
-* [single precision](https://en.wikipedia.org/wiki/Single-precision_floating-point_format#Converting_from_single-precision_binary_to_decimal) https://en.wikipedia.org/wiki/Single-precision\_floating-point\_format\#Converting\_from\_single-precision\_binary\_to\_decimal
-* [double precision](https://en.wikipedia.org/wiki/Double-precision_floating-point_format#Exponent_encoding) https://en.wikipedia.org/wiki/Double-precision\_floating-point\_format\#Exponent\_encoding
-* [float toy](https://evanw.github.io/float-toy/) https://evanw.github.io/float-toy/
+* [single precision](https://en.wikipedia.org/wiki/Single-precision_floating-point_format#Converting_from_single-precision_binary_to_decimal): https://en.wikipedia.org/wiki/Single-precision\_floating-point\_format\#Converting\_from\_single-precision\_binary\_to\_decimal
+* [double precision](https://en.wikipedia.org/wiki/Double-precision_floating-point_format#Exponent_encoding): https://en.wikipedia.org/wiki/Double-precision\_floating-point\_format\#Exponent\_encoding
+* [float toy](https://evanw.github.io/float-toy/): https://evanw.github.io/float-toy/
 

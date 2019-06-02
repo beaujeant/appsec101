@@ -496,10 +496,10 @@ In the next exercises, we will go a bit deeper with the usage of `GDB`.
 
 ## References
 
-* [IDA](https://www.hex-rays.com/products/ida/support/download_freeware.shtml) https://www.hex-rays.com/products/ida/support/download\_freeware.shtml
-* [16.04](http://releases.ubuntu.com/16.04/) http://releases.ubuntu.com/16.04/
-* [Ubuntu 16.04.5 Desktop 32-bit](http://releases.ubuntu.com/16.04/ubuntu-16.04.5-desktop-i386.iso) http://releases.ubuntu.com/16.04/ubuntu-16.04.5-desktop-i386.iso
-* [VirtualBox](https://www.virtualbox.org/) https://www.virtualbox.org
-* [tutorial](https://medium.com/@tushar0618/install-ubuntu-16-04-lts-on-virtual-box-desktop-version-30dc6f1958d0) https://medium.com/@tushar0618/install-ubuntu-16-04-lts-on-virtual-box-desktop-version-30dc6f1958d0
-* [onlinedocs](https://sourceware.org/gdb/onlinedocs/gdb/Memory.html) https://sourceware.org/gdb/onlinedocs/gdb/Memory.html
+* [IDA](https://www.hex-rays.com/products/ida/support/download_freeware.shtml): https://www.hex-rays.com/products/ida/support/download\_freeware.shtml
+* [16.04](http://releases.ubuntu.com/16.04/): http://releases.ubuntu.com/16.04/
+* [Ubuntu 16.04.5 Desktop 32-bit](http://releases.ubuntu.com/16.04/ubuntu-16.04.5-desktop-i386.iso): http://releases.ubuntu.com/16.04/ubuntu-16.04.5-desktop-i386.iso
+* [VirtualBox](https://www.virtualbox.org/): https://www.virtualbox.org
+* [tutorial](https://medium.com/@tushar0618/install-ubuntu-16-04-lts-on-virtual-box-desktop-version-30dc6f1958d0): https://medium.com/@tushar0618/install-ubuntu-16-04-lts-on-virtual-box-desktop-version-30dc6f1958d0
+* [onlinedocs](https://sourceware.org/gdb/onlinedocs/gdb/Memory.html): https://sourceware.org/gdb/onlinedocs/gdb/Memory.html
 

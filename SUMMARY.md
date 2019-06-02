@@ -6,5 +6,6 @@
 * [Lab environment](lab.md)
 * [Programming](programming.md)
 * [Assembly](assembly.md)
+* [Buffer overflow](buffer-overflow.md)
 * [Integer overflow](integer-overflow.md)
 

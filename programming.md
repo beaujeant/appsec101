@@ -946,6 +946,28 @@ char o = 'O';
 printf("%2$c %1$c %3$c %3$c %4$c \n", e, h, l, o); // H E L L O
 ```
 
+### sprintf
+
+The function `sprintf` is a bit like `printf`, it builds a string based on a _format string_ and the additional arguments, but instead of printing the result, it stores it in a string variable \(char array\). The destination variable is the first argument, the format string is the second and additional format parameters are place after.
+
+```c
+#include <stdio.h>
+
+void main()
+{
+
+    int a = 42;
+    char string[100]; 
+
+    sprintf(string, "Answer = %d", &a);
+    
+    printf("string: %s \n", string); // string: Answer = 42
+
+}
+```
+
+You can find a bit more information about the function in the [sprintf reference](http://www.cplusplus.com/reference/cstdio/sprintf/?kw=sprintf).
+
 ### scanf
 
 We’ve seen how to print \(output\) data with `printf`, now we will see how to get \(input\) data from the user with the function `scanf`. The first argument for `scanf` is also a _format string_. In this case, the _format string_ tells how we want to cast the user input. The _format string_ usually contains a single _format specifier_. The `scanf` _format specifier_ has a similar structure as `printf`: `%[*][width][length]specifier`.
@@ -981,10 +1003,34 @@ void main()
 ```
 
 {% hint style="info" %}
-At the first `scanf` we enter a number in the terminal. In order to “validate” the number, we press `<enter>`. However, this `<enter>`  is also sent to `scanf` as `\n`, which doesn’t match the format specifier, so `scanf` keep it in the buffer. So next time `scanf` is called, the first character received will be that `\n`. In order to discard that newline character, we added a whitespace in our format strings of the following `scanf`. This whitespace tells scanf to ignore any “whitespace” element, i.e. space, tabulation, and newline.
+At the first `scanf` we enter a number in the terminal. In order to “validate” the number, we press `<enter>`. However, this `<enter>`  is also sent to `scanf` as `\n`, which doesn’t match the format specifier, so `scanf` keep it in the buffer. So next time `scanf` is called, the first character received will be that `\n`. In order to discard that newline character, we added a whitespace in our format strings of the following `scanf`. This whitespace tells `scanf` to ignore any “whitespace” element, i.e. space, tabulation, and newline.
+{% endhint %}
+
+{% hint style="info" %}
+When using `%s`, `scanf` will copy the string until it finds a "whitespace". So, if you type "Hello World!", only the "Hello" will be stored in the variable.
 {% endhint %}
 
 That’s all we need to know about `scanf` for this workshop. If you want more information about `scanf`, you can read the [scanf reference](http://www.cplusplus.com/reference/cstdio/scanf/).
+
+### gets
+
+Another similar function to `scanf` is `gets`. The function only takes one argument, the _destination_ where the user input will be stored. Unlike `scanf`, it stops copying the user input only once it reaches a newline character \(or EOF\). So, this means you can store a string that has spaces and tabulations.
+
+```c
+#include <stdio.h>
+
+void main()
+{
+    
+    char text[100]; 
+
+    gets(text);
+
+    printf("text: %s \n", text);
+}
+```
+
+The function is quite simple, but if you want to know more about, you can read the [gets reference](http://www.cplusplus.com/reference/cstdio/gets/).
 
 ### strcpy
 
@@ -1103,12 +1149,14 @@ That’s it for this big chapter about C programming. In the [next chapter](http
 
 ## References
 
-* [Learning C](https://www.learn-c.org/) https://www.learn-c.org/
-* [C Tutorial](https://www.codingunit.com/category/c-tutorials) https://www.codingunit.com/category/c-tutorials
-* [printf reference](http://www.cplusplus.com/reference/cstdio/printf/) http://www.cplusplus.com/reference/cstdio/printf/
-* [scanf reference](http://www.cplusplus.com/reference/cstdio/scanf/) http://www.cplusplus.com/reference/cstdio/scanf/
-* [strcpy reference](http://www.cplusplus.com/reference/cstring/strcpy/) http://www.cplusplus.com/reference/cstring/strcpy/
-* [malloc reference](http://www.cplusplus.com/reference/cstdlib/malloc/) http://www.cplusplus.com/reference/cstdlib/malloc/
-* [free reference](http://www.cplusplus.com/reference/cstdlib/free/) http://www.cplusplus.com/reference/cstdlib/free/
-* [Online compiler](https://www.tutorialspoint.com/compile_c_online.php) https://www.tutorialspoint.com/compile\_c\_online.php
+* [Learning C](https://www.learn-c.org/): https://www.learn-c.org/
+* [C Tutorial](https://www.codingunit.com/category/c-tutorials): https://www.codingunit.com/category/c-tutorials
+* [printf reference](http://www.cplusplus.com/reference/cstdio/printf/): http://www.cplusplus.com/reference/cstdio/printf/
+* [sprintf reference](http://www.cplusplus.com/reference/cstdio/sprintf/?kw=sprintf): http://www.cplusplus.com/reference/cstdio/sprintf/?kw=sprintf
+* [scanf reference](http://www.cplusplus.com/reference/cstdio/scanf/): http://www.cplusplus.com/reference/cstdio/scanf/
+* [gets reference](http://www.cplusplus.com/reference/cstdio/gets/): http://www.cplusplus.com/reference/cstdio/gets/
+* [strcpy reference](http://www.cplusplus.com/reference/cstring/strcpy/): http://www.cplusplus.com/reference/cstring/strcpy/
+* [malloc reference](http://www.cplusplus.com/reference/cstdlib/malloc/): http://www.cplusplus.com/reference/cstdlib/malloc/
+* [free reference](http://www.cplusplus.com/reference/cstdlib/free/): http://www.cplusplus.com/reference/cstdlib/free/
+* [Online compiler](https://www.tutorialspoint.com/compile_c_online.php): https://www.tutorialspoint.com/compile\_c\_online.php
 
