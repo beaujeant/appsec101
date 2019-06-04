@@ -1534,6 +1534,13 @@ ret ; return to the caller
 
 Once the epilog executed, the execution flow is back to the caller with the stack frame exactly as it was before the function was called. The epilog also simplifies the process of cleaning the stack prior to the `ret` instruction to make sure the return address is at the top of the stack. Instead of keeping track of how many memory has been allocated in the stack, you simply need to do a `mov esp, ebp` followed by a `pop`, and `esp` will always point to the return address.
 
+This leads us to the last instruction we will learn this this course: `leave`. This instruction is the equivalent of:
+
+```text
+mov esp, ebp
+pop ebp
+```
+
 #### Arguments
 
 This is a not a rule but rather a convention: arguments sent to a function are pushed to the stack prior to the `call` instruction, the last argument being pushed first. For instance, if I have the following code:
@@ -1592,29 +1599,85 @@ int add(int first, int second)
 {% endcode-tabs %}
 
 ```text
-disassemble main
-disassemble add
+$ gdb -q simple-add
+Reading symbols from simple-add...(no debugging symbols found)...done.
+(gdb) set disassembly-flavor intel
+(gdb) disassemble main
+Dump of assembler code for function main:
+   0x0804840b <+0>:	lea    ecx,[esp+0x4]
+   0x0804840f <+4>:	and    esp,0xfffffff0
+   0x08048412 <+7>:	push   DWORD PTR [ecx-0x4]
+   0x08048415 <+10>:	push   ebp
+   0x08048416 <+11>:	mov    ebp,esp
+   0x08048418 <+13>:	push   ecx
+   0x08048419 <+14>:	sub    esp,0x14
+   0x0804841c <+17>:	sub    esp,0x8
+   0x0804841f <+20>:	push   0x3
+   0x08048421 <+22>:	push   0x7
+   0x08048423 <+24>:	call   0x804844a <add>
+   0x08048428 <+29>:	add    esp,0x10
+   0x0804842b <+32>:	mov    DWORD PTR [ebp-0xc],eax
+   0x0804842e <+35>:	sub    esp,0x8
+   0x08048431 <+38>:	push   DWORD PTR [ebp-0xc]
+   0x08048434 <+41>:	push   0x80484f0
+   0x08048439 <+46>:	call   0x80482e0 <printf@plt>
+   0x0804843e <+51>:	add    esp,0x10
+   0x08048441 <+54>:	nop
+   0x08048442 <+55>:	mov    ecx,DWORD PTR [ebp-0x4]
+   0x08048445 <+58>:	leave  
+   0x08048446 <+59>:	lea    esp,[ecx-0x4]
+   0x08048449 <+62>:	ret    
+End of assembler dump.
+(gdb) disassemble add
+Dump of assembler code for function add:
+   0x0804844a <+0>:	push   ebp
+   0x0804844b <+1>:	mov    ebp,esp
+   0x0804844d <+3>:	sub    esp,0x10
+   0x08048450 <+6>:	mov    eax,DWORD PTR [ebp+0x8]
+   0x08048453 <+9>:	mov    DWORD PTR [ebp-0xc],eax
+   0x08048456 <+12>:	mov    eax,DWORD PTR [ebp+0xc]
+   0x08048459 <+15>:	mov    DWORD PTR [ebp-0x8],eax
+   0x0804845c <+18>:	mov    edx,DWORD PTR [ebp-0xc]
+   0x0804845f <+21>:	mov    eax,DWORD PTR [ebp-0x8]
+   0x08048462 <+24>:	add    eax,edx
+   0x08048464 <+26>:	mov    DWORD PTR [ebp-0x4],eax
+   0x08048467 <+29>:	mov    eax,DWORD PTR [ebp-0x4]
+   0x0804846a <+32>:	leave  
+   0x0804846b <+33>:	ret    
+End of assembler dump.
 ```
 
-In lines ?-?, we can see that the second and first arguments are pushed to the stack.
+In lines 14-15, we can see that the second and first arguments are pushed to the stack.
 
 &lt;image stack&gt;
 
-Then, in line ? we call the function `add`. 
+Then, in line 16 we call the function `add`. 
 
 &lt;image stack&gt;
 
-Once in the function `add`, we start with the prolog \(lines ?-?\), which set up the stack frame. As you can see, xx bytes are allocates \(line ?\). In the initial source code, we have three integers declared as local variable, which means 3 x 4 bytes should be allocated, but as we've seen earlier, the compiler as a tendency to allocate more to align the stack with a multiple of 16.
+Once in the function `add`, we start with the prolog \(lines 32-34\), which set up the stack frame. As you can see, 0x10 (16) bytes are allocates \(line 34\). In the initial source code, we have three integers declared as local variable, which means 3 x 4 bytes should have been allocated, but as we've seen earlier, the compiler as a tendency to allocate more to align the stack with a multiple of 16. However, here, this is not the case. So, why allocating 16 bytes instead of 12? I don't know...
 
 &lt;image stack&gt;
 
-The `first` argument is then copied in the local variable `x` \(line ?\) and the `second` one is copied in the local variable `y` \(line ?\). We then have the addition \(line ?\) and the result is saved in the local variable `result` \(line ?\).
+The `first` argument \(`ebp+0x08`\) is first copied in `eax` \(line 35\), then copied from `eax` to the local variable `x` \(`ebp-0x0c`\) \(line 36\). 
+
+{% hint style="info" %}
+Remember that CPU cannot copy directly from memory to memory. The data have to transit via a register. 
+{% endhint %}
+
+{% hint style="info" %}
+As seen earlier, function argument are accessed with a positive offset to `ebp`, while local function are accesed with a negative offset to `ebp`.
+{% endhint %}
+
+The same takes place with the `second` argument \(`ebp+0x0c`\) : it is first copied in `eax` \(line 37\) then copied from `eax` to the local variable `y` \(`ebp-0x08`\) \(line 38\). 
+
+The local variable `x` is then saved temporary in the register `edx` \(line 39\) and the local variable `y` is saved in eax \(line 40\). Both variables are stored in registers for the `add` instruction in line 41. The result is then saved in the local variable `result` \(`ebp-0x04`\) \(line 42\).
+
+The function `add` returns the variable `result`, so the content of `result` is copied in `eax` \(line 43\), which is pointless because `eax` still contains the result of the addition, but anyway. Then we have the epilog \(line 44-45\) that clear the `add` stack frame and set back the `main` stack frame. The stack pointer is now pointing to the return address in `main` and the `ret` instruction is executed \(line 45\) to jump right after the `call add`.
+
+`eax` contains the return value \(i.e. `result`\), which is copied to the `main`'s local variable `ret` \(line 18\). `ret` is then pushed to the stack \(line 20\) as second argument to `printf`, then a pointer to the format string `"ret = %d"` is pushed to the stack \(line 21\) as first argument. `printf` is then called.
 
 If this chapter is not completely clear and understood to you, then, this means I failed this course. All what I wrote so far, all the previous pages are actually meant to understand this last chapter. So please, if something is not entirely clear to you or if you still have some question about the way a function is called and executed in assembly, ask me and I'll will update the course accordingly.
-
-The function `add` returns the variable `result`, so the content of `result` is copied in `eax` \(line ?\), which is pointless because `eax` still contains the result of the addition, but anyway. Then we have the epilog \(line ?-?\) that clear the `add` stack frame and set back the `main` stack frame. The stack pointer is now pointing to the return address in `main` and the `ret` instruction is executed \(line ?\) to jump right after the `call add`.
-
-`eax` contains the return value \(i.e. `result`\), which is copied to the `main`'s local variable `ret` \(line ?\). `ret` is then pushed to the stack \(line ?\) as second argument to `printf`, then a pointer to the format string `"ret = %d"` is pushed to the stack \(line ?\) as first argument. `printf` is then called.
 
 ## References
 

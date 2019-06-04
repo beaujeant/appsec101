@@ -20,6 +20,14 @@ In a buffer, information is stored contiguously \(one after another\), and we've
 
 But for the CPU itself whether the data processed was initially an integer, a char or float, it doesn't matter, it will execute the instruction regardless of the type of data pointed by the operand\(s\).This means if we execute an instruction at the **wrong address**/**offset**, we might _mistakenly_ alter neighbour piece\(s\) of information in the buffer. 
 
+```text
+; snipped based on simple-add.c
+mov    eax,DWORD PTR [ebp+0x8]
+mov    DWORD PTR [ebp-0xc],eax
+mov    eax,DWORD PTR [ebp+0xc]
+mov    DWORD PTR [ebp-0a],eax  ; wrong offset which will overwrite previous local variable
+```
+
 &lt;img of instruction doing ass between two var but with an offset of 4&gt;
 
 The most common situation whenever a wrong address/offset occurs is when browsing and writing in an array. The iteration counter used for indexing might not be properly verified and end up being higher than the actual size of the memory area allocated for the array, resulting in the array being **overflow** and overwriting the subsequent piece\(s\) of information.
