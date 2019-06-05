@@ -623,9 +623,9 @@ Reading symbols from hello...(no debugging symbols found)...done.
 (gdb) set disassembly-flavor intel
 (gdb) disassemble print_hello 
 Dump of assembler code for function print_hello:
-   0x0804848b <+0>:	push   ebp
-   0x0804848c <+1>:	mov    ebp,esp
-   0x0804848e <+3>:	sub    esp,0x38
+   0x0804848b <+0>:    push   ebp
+   0x0804848c <+1>:    mov    ebp,esp
+   0x0804848e <+3>:    sub    esp,0x38
    [...]
 ```
 
@@ -918,7 +918,7 @@ not [0xbfff1122], ebx ; 0xbfff1122 is now pointing to the value 0xffffecc8
 
 #### neg - negate
 
-The `neg` instruction negates the referenced value by the operand and save the result in the operand. So the value 123 would become -123. Negative signed integer will be explained more in details in chapter integer overflow, but for now, what you have to know is that negating is done by executing a [two's complement operation](https://en.wikipedia.org/wiki/Two's_complement), which consist of inverting the binary value and add 1.
+The `neg` instruction negates the referenced value by the operand and save the result in the operand. So the value 123 would become -123. Negative signed integer will be explained more in details in chapter integer overflow, but for now, what you have to know is that negating is done by executing a \[two's complement operation\]\([https://en.wikipedia.org/wiki/Two's\_complement](https://en.wikipedia.org/wiki/Two's_complement)\), which consist of inverting the binary value and add 1.
 
 ```text
 ; eax = 0xbfff1122
@@ -1484,16 +1484,16 @@ call $+0x123 ; call the function located 0x123 bytes earlier
 The `call` instruction when executed first `push` the address of the instruction located right after the `call` itself, then it redirect the flow \(overwrite `eip`\) to the address referenced in the operand. So basically, the following instructions...
 
 ```text
-0x0804847c:	call   0x804848b
-0x08048481:	nop
+0x0804847c:    call   0x804848b
+0x08048481:    nop
 ```
 
 ... is the equivalent of ...
 
 ```text
-0x08048477:	push 0x08048481
-0x0804847c:	jmp 0x804848b
-0x08048481:	nop
+0x08048477:    push 0x08048481
+0x0804847c:    jmp 0x804848b
+0x08048481:    nop
 ```
 
 The reason why the address of the next instruction \(known as the **return address**\) is pushed to the stack is because function always terminates with a `ret` instruction. The `ret` instruction can be seen as something similar to `pop eip` \(which is not a valid instruction\). So, one crucial aspect when creating a function is that no matter what you add/remove in the stack \(e.g. local variables, arguments for the next function, etc\), you must to clean the stack so that at the end of the function, once all the code executed, the stack pointer is pointing to the **return address** pushed earlier with the initial `call` instruction and the ret instruction redirect the flow back to the _caller_, right after the `call` instruction.
@@ -1586,12 +1586,12 @@ int add(int first, int second)
     int x;
     int y;
     int result;
- 
+
      x = first;
      y = second;
-     
+
      result = x + y;
-     
+
      return result;
  }
 ```
@@ -1604,72 +1604,72 @@ Reading symbols from simple-add...(no debugging symbols found)...done.
 (gdb) set disassembly-flavor intel
 (gdb) disassemble main
 Dump of assembler code for function main:
-   0x0804840b <+0>:	lea    ecx,[esp+0x4]
-   0x0804840f <+4>:	and    esp,0xfffffff0
-   0x08048412 <+7>:	push   DWORD PTR [ecx-0x4]
-   0x08048415 <+10>:	push   ebp
-   0x08048416 <+11>:	mov    ebp,esp
-   0x08048418 <+13>:	push   ecx
-   0x08048419 <+14>:	sub    esp,0x14
-   0x0804841c <+17>:	sub    esp,0x8
-   0x0804841f <+20>:	push   0x3
-   0x08048421 <+22>:	push   0x7
-   0x08048423 <+24>:	call   0x804844a <add>
-   0x08048428 <+29>:	add    esp,0x10
-   0x0804842b <+32>:	mov    DWORD PTR [ebp-0xc],eax
-   0x0804842e <+35>:	sub    esp,0x8
-   0x08048431 <+38>:	push   DWORD PTR [ebp-0xc]
-   0x08048434 <+41>:	push   0x80484f0
-   0x08048439 <+46>:	call   0x80482e0 <printf@plt>
-   0x0804843e <+51>:	add    esp,0x10
-   0x08048441 <+54>:	nop
-   0x08048442 <+55>:	mov    ecx,DWORD PTR [ebp-0x4]
-   0x08048445 <+58>:	leave  
-   0x08048446 <+59>:	lea    esp,[ecx-0x4]
-   0x08048449 <+62>:	ret    
+   0x0804840b <+0>:    lea    ecx,[esp+0x4]
+   0x0804840f <+4>:    and    esp,0xfffffff0
+   0x08048412 <+7>:    push   DWORD PTR [ecx-0x4]
+   0x08048415 <+10>:    push   ebp
+   0x08048416 <+11>:    mov    ebp,esp
+   0x08048418 <+13>:    push   ecx
+   0x08048419 <+14>:    sub    esp,0x14
+   0x0804841c <+17>:    sub    esp,0x8
+   0x0804841f <+20>:    push   0x3
+   0x08048421 <+22>:    push   0x7
+   0x08048423 <+24>:    call   0x804844a <add>
+   0x08048428 <+29>:    add    esp,0x10
+   0x0804842b <+32>:    mov    DWORD PTR [ebp-0xc],eax
+   0x0804842e <+35>:    sub    esp,0x8
+   0x08048431 <+38>:    push   DWORD PTR [ebp-0xc]
+   0x08048434 <+41>:    push   0x80484f0
+   0x08048439 <+46>:    call   0x80482e0 <printf@plt>
+   0x0804843e <+51>:    add    esp,0x10
+   0x08048441 <+54>:    nop
+   0x08048442 <+55>:    mov    ecx,DWORD PTR [ebp-0x4]
+   0x08048445 <+58>:    leave  
+   0x08048446 <+59>:    lea    esp,[ecx-0x4]
+   0x08048449 <+62>:    ret    
 End of assembler dump.
 (gdb) disassemble add
 Dump of assembler code for function add:
-   0x0804844a <+0>:	push   ebp
-   0x0804844b <+1>:	mov    ebp,esp
-   0x0804844d <+3>:	sub    esp,0x10
-   0x08048450 <+6>:	mov    eax,DWORD PTR [ebp+0x8]
-   0x08048453 <+9>:	mov    DWORD PTR [ebp-0xc],eax
-   0x08048456 <+12>:	mov    eax,DWORD PTR [ebp+0xc]
-   0x08048459 <+15>:	mov    DWORD PTR [ebp-0x8],eax
-   0x0804845c <+18>:	mov    edx,DWORD PTR [ebp-0xc]
-   0x0804845f <+21>:	mov    eax,DWORD PTR [ebp-0x8]
-   0x08048462 <+24>:	add    eax,edx
-   0x08048464 <+26>:	mov    DWORD PTR [ebp-0x4],eax
-   0x08048467 <+29>:	mov    eax,DWORD PTR [ebp-0x4]
-   0x0804846a <+32>:	leave  
-   0x0804846b <+33>:	ret    
+   0x0804844a <+0>:    push   ebp
+   0x0804844b <+1>:    mov    ebp,esp
+   0x0804844d <+3>:    sub    esp,0x10
+   0x08048450 <+6>:    mov    eax,DWORD PTR [ebp+0x8]
+   0x08048453 <+9>:    mov    DWORD PTR [ebp-0xc],eax
+   0x08048456 <+12>:    mov    eax,DWORD PTR [ebp+0xc]
+   0x08048459 <+15>:    mov    DWORD PTR [ebp-0x8],eax
+   0x0804845c <+18>:    mov    edx,DWORD PTR [ebp-0xc]
+   0x0804845f <+21>:    mov    eax,DWORD PTR [ebp-0x8]
+   0x08048462 <+24>:    add    eax,edx
+   0x08048464 <+26>:    mov    DWORD PTR [ebp-0x4],eax
+   0x08048467 <+29>:    mov    eax,DWORD PTR [ebp-0x4]
+   0x0804846a <+32>:    leave  
+   0x0804846b <+33>:    ret    
 End of assembler dump.
 ```
 
 In lines 14-15, we can see that the second and first arguments are pushed to the stack.
 
-&lt;image stack&gt;
+![simple-add.c args on stack](.gitbook/assets/simple-add-arg.png)
 
-Then, in line 16 we call the function `add`. 
+Then, in line 16 we call the function `add`.
 
-&lt;image stack&gt;
+![simple-add.c after call](.gitbook/assets/simple-add-ret.png)
 
-Once in the function `add`, we start with the prolog \(lines 32-34\), which set up the stack frame. As you can see, 0x10 (16) bytes are allocates \(line 34\). In the initial source code, we have three integers declared as local variable, which means 3 x 4 bytes should have been allocated, but as we've seen earlier, the compiler as a tendency to allocate more to align the stack with a multiple of 16. However, here, this is not the case. So, why allocating 16 bytes instead of 12? I don't know...
+Once in the function `add`, we start with the prolog \(lines 32-34\), which set up the stack frame. As you can see, 0x10 \(16\) bytes are allocates \(line 34\). In the initial source code, we have three integers declared as local variable, which means 3 x 4 bytes should have been allocated, but as we've seen earlier, the compiler as a tendency to allocate more to align the stack with a multiple of 16. However, here, this is not the case. So, why allocating 16 bytes instead of 12? I don't know...
 
-&lt;image stack&gt;
+![simple-add.c local variables](.gitbook/assets/simple-add-local.png)
 
-The `first` argument \(`ebp+0x08`\) is first copied in `eax` \(line 35\), then copied from `eax` to the local variable `x` \(`ebp-0x0c`\) \(line 36\). 
+The `first` argument \(`ebp+0x08`\) is first copied in `eax` \(line 35\), then copied from `eax` to the local variable `x` \(`ebp-0x0c`\) \(line 36\).
 
 {% hint style="info" %}
-Remember that CPU cannot copy directly from memory to memory. The data have to transit via a register. 
+Remember that CPU cannot copy directly from memory to memory. The data have to transit via a register.
 {% endhint %}
 
 {% hint style="info" %}
 As seen earlier, function argument are accessed with a positive offset to `ebp`, while local function are accesed with a negative offset to `ebp`.
 {% endhint %}
 
-The same takes place with the `second` argument \(`ebp+0x0c`\) : it is first copied in `eax` \(line 37\) then copied from `eax` to the local variable `y` \(`ebp-0x08`\) \(line 38\). 
+The same takes place with the `second` argument \(`ebp+0x0c`\) : it is first copied in `eax` \(line 37\) then copied from `eax` to the local variable `y` \(`ebp-0x08`\) \(line 38\).
 
 The local variable `x` is then saved temporary in the register `edx` \(line 39\) and the local variable `y` is saved in eax \(line 40\). Both variables are stored in registers for the `add` instruction in line 41. The result is then saved in the local variable `result` \(`ebp-0x04`\) \(line 42\).
 
@@ -1681,12 +1681,12 @@ If this chapter is not completely clear and understood to you, then, this means 
 
 ## References
 
-* [supported instructions](https://en.wikipedia.org/wiki/X86_instruction_listings): https://en.wikipedia.org/wiki/X86\_instruction\_listings
-* \[[1](https://stackoverflow.com/a/28475252)\] https://stackoverflow.com/a/28475252
-* \[[2](https://en.wikipedia.org/wiki/Data_segment)\] https://en.wikipedia.org/wiki/Data\_segment
-* \[[3](https://stackoverflow.com/a/2136065)\] https://stackoverflow.com/a/2136065
+* [supported instructions](https://en.wikipedia.org/wiki/X86_instruction_listings): [https://en.wikipedia.org/wiki/X86\_instruction\_listings](https://en.wikipedia.org/wiki/X86_instruction_listings)
+* \[[1](https://stackoverflow.com/a/28475252)\] [https://stackoverflow.com/a/28475252](https://stackoverflow.com/a/28475252)
+* \[[2](https://en.wikipedia.org/wiki/Data_segment)\] [https://en.wikipedia.org/wiki/Data\_segment](https://en.wikipedia.org/wiki/Data_segment)
+* \[[3](https://stackoverflow.com/a/2136065)\] [https://stackoverflow.com/a/2136065](https://stackoverflow.com/a/2136065)
 * [ASCII](https://www.asciitable.xyz/): [https://www.asciitable.xyz/](https://www.asciitable.xyz/)
-* [Two's complement](https://en.wikipedia.org/wiki/Two's_complement): https://en.wikipedia.org/wiki/Two%27s\_complement
+* \[Two's complement\]\([https://en.wikipedia.org/wiki/Two's\_complement](https://en.wikipedia.org/wiki/Two's_complement)\): [https://en.wikipedia.org/wiki/Two's\_complement](https://en.wikipedia.org/wiki/Two's_complement)
 * [https://www.cs.virginia.edu/~evans/cs216/guides/x86.html](https://www.cs.virginia.edu/~evans/cs216/guides/x86.html)
-* [dynamic linkage](https://www.technovelty.org/linux/plt-and-got-the-key-to-code-sharing-and-dynamic-libraries.html): https://www.technovelty.org/linux/plt-and-got-the-key-to-code-sharing-and-dynamic-libraries.html
+* [dynamic linkage](https://www.technovelty.org/linux/plt-and-got-the-key-to-code-sharing-and-dynamic-libraries.html): [https://www.technovelty.org/linux/plt-and-got-the-key-to-code-sharing-and-dynamic-libraries.html](https://www.technovelty.org/linux/plt-and-got-the-key-to-code-sharing-and-dynamic-libraries.html)
 

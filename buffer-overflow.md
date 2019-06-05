@@ -4,7 +4,7 @@ Finally, we made it: the first chapter actually talking about application securi
 
 ## Definition
 
-In the name of the vulnerability "buffer overflow", we have **buffer**... and **overflow**. A buffer if an area in memory where pieces of information \(e.g. variables, saved registers, etc\) are stored temporary to be used later. Typically, the **stack** can be considered as a buffer. 
+In the name of the vulnerability "buffer overflow", we have **buffer**... and **overflow**. A buffer if an area in memory where pieces of information \(e.g. variables, saved registers, etc\) are stored temporary to be used later. Typically, the **stack** can be considered as a buffer.
 
 {% hint style="info" %}
 In this beginner course, we will focus on stack-based buffer overflow only.
@@ -16,9 +16,9 @@ In a buffer, information is stored contiguously \(one after another\), and we've
 * the instruction to be executed
 * \(optionally\) the size directive
 
-&lt;img instrction w/ size directive showing random pointer could be anything CPU will process&gt;
+![mov instruction with size directive](.gitbook/assets/size-directive.png)
 
-But for the CPU itself whether the data processed was initially an integer, a char or float, it doesn't matter, it will execute the instruction regardless of the type of data pointed by the operand\(s\).This means if we execute an instruction at the **wrong address**/**offset**, we might _mistakenly_ alter neighbour piece\(s\) of information in the buffer. 
+But for the CPU itself whether the data processed was initially an integer, a char or float, it doesn't matter, it will execute the instruction regardless of the type of data pointed by the operand\(s\).This means if we execute an instruction at the **wrong address**/**offset**, we might _mistakenly_ alter neighbour piece\(s\) of information in the buffer.
 
 ```text
 ; snipped based on simple-add.c
@@ -28,11 +28,11 @@ mov    eax,DWORD PTR [ebp+0xc]
 mov    DWORD PTR [ebp-0a],eax  ; wrong offset which will overwrite previous local variable
 ```
 
-&lt;img of instruction doing ass between two var but with an offset of 4&gt;
+![mov instruction with wrong offset](.gitbook/assets/wrong-offset.gif)
 
 The most common situation whenever a wrong address/offset occurs is when browsing and writing in an array. The iteration counter used for indexing might not be properly verified and end up being higher than the actual size of the memory area allocated for the array, resulting in the array being **overflow** and overwriting the subsequent piece\(s\) of information.
 
-&lt;img loop that overwrite neighbour var&gt;
+![Loop overflow](.gitbook/assets/loop-overflow.gif)
 
 So now you know what is a **buffer** and what we mean by **overflow** in that context.
 
@@ -54,9 +54,9 @@ Now, let say the function used to update your name doesn't verify if the new nam
 Remember that a string always ends up with a `NULL` character
 {% endhint %}
 
-But then, why overwriting only the balance you may ask? Why not also overwriting the status to be an moderator? 
+But then, why overwriting only the balance you may ask? Why not also overwriting the status to be an moderator?
 
-When overwriting the money variable, we didn't have to write a specific value, we just wanted to be more rich, so we just we just typed random text to overwrite the memory area where your balance is stored. If we were clever, we could also look in the ASCII table which printable character represent the higher value. Unfortunately, the highest value is the non-printable character `DEL`, so we could use the `~` instead \(`0x7e` in hexadecimal\). 
+When overwriting the money variable, we didn't have to write a specific value, we just wanted to be more rich, so we just we just typed random text to overwrite the memory area where your balance is stored. If we were clever, we could also look in the ASCII table which printable character represent the higher value. Unfortunately, the highest value is the non-printable character `DEL`, so we could use the `~` instead \(`0x7e` in hexadecimal\).
 
 &lt;img with money ~~~&gt;
 
@@ -84,9 +84,9 @@ Some might wonder why is that interesting to redirect the execution flow or over
 
 #### Escalate privilege
 
-When using a Linux, you are limited to your own user's right. Whenever you run a program, it inherit your access permission. So if you create a program that open and read `/etc/shadow` \(which has read and write access restriction to the user `root` only\), your program won't have the permission to do so. However, if you manage to find and exploit a buffer overflow on an application running with higher privileges \(let say `root`\), you will be able to execute malicious code with those privilege \(e.g. read `/etc/shadow`\). 
+When using a Linux, you are limited to your own user's right. Whenever you run a program, it inherit your access permission. So if you create a program that open and read `/etc/shadow` \(which has read and write access restriction to the user `root` only\), your program won't have the permission to do so. However, if you manage to find and exploit a buffer overflow on an application running with higher privileges \(let say `root`\), you will be able to execute malicious code with those privilege \(e.g. read `/etc/shadow`\).
 
-One interesting feature of Linux is the SUID.  SUID, short for **S**et owner **U**ser **ID** up on execution, is a special type of file permissions given to a file. When defined, it gives temporary permissions to a user to run a program/file with the permissions of the file owner rather that the user who runs it. In simple words users will get file owner's permissions as well as owner UID and GID when executing a program \[[1](https://www.linux.com/blog/what-suid-and-how-set-suid-linuxunix)\]. So this means if the `root` user creates a program, set the permission so that anyone can execute it, than set SUID, you will be able to run that program and the program will have root access permission. So, if you find a buffer overflow in that program, you will be able to execute code as `root`.
+One interesting feature of Linux is the SUID. SUID, short for **S**et owner **U**ser **ID** up on execution, is a special type of file permissions given to a file. When defined, it gives temporary permissions to a user to run a program/file with the permissions of the file owner rather that the user who runs it. In simple words users will get file owner's permissions as well as owner UID and GID when executing a program \[[1](https://www.linux.com/blog/what-suid-and-how-set-suid-linuxunix)\]. So this means if the `root` user creates a program, set the permission so that anyone can execute it, than set SUID, you will be able to run that program and the program will have root access permission. So, if you find a buffer overflow in that program, you will be able to execute code as `root`.
 
 {% hint style="info" %}
 This course didn't cover the Linux system and its permission so that's fine if this part is not clear to you.
@@ -116,9 +116,9 @@ int verify_password(void);
 void main()
 {
     int valid;
-    
+
     valid = verify_password();
-    
+
     if(valid)
         printf("Password correct");
     else
@@ -128,10 +128,10 @@ void main()
 int verify_password()
 {
     char password[16];
-    
+
     printf("Enter password: ");
     gets(password);
-    
+
     if( ! strcmp(password, "letmein") )
         return 1;
     else
@@ -186,7 +186,7 @@ As you can see, whenever you send a password too long, the application crash wit
 
 ```text
 *** stack smashing detected ***: ./login terminated                                                                                 
-Aborted 
+Aborted
 ```
 
 ### Finding offset
