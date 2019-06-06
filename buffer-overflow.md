@@ -42,27 +42,29 @@ Overwriting neighbour memory areas could be leveraged for **malicious** purpose.
 
 ### Edit sensitive neighbour variables
 
-Let say for instance that you are playing an online video game. Your profile should be stored in the stack on the server side. Your profile contains your name, your location, how much money you have \(balance\), your status \(allied, enemy or moderator\) and the list of items in your inventory.
+Let say for instance that you are playing an online video game. Your profile should be stored in the stack on the server side. Your profile contains your name, your location, how much money you have \(wallet\), your status \(allied, enemy or moderator\) and the list of items in your inventory.
 
-&lt;img with stack + color legend + visual representation of profile&gt;
+![Game server stack](.gitbook/assets/game-stack.png)
 
-Now, let say the function used to update your name doesn't verify if the new name fits the memory area allocated for the name variable in the stack. You could try to update your name, with a string long enough that it overflow the variable and overwrite the content of the next variable, i.e. your balance \(money\).
+Now, let say the function used to update your name doesn't verify if the new name fits the memory area allocated for the name variable in the stack. You could try to update your name, with a string long enough that it overflow the variable and overwrite the content of the next variable, i.e. your balance \(wallet\). For instance with the name "Queen Daenerys of the House Targaryen." \(35 characters\), which will overflow the 32 bytes array.
 
-&lt;img of overflow&gt;
+![Wallet overflowed](.gitbook/assets/game-wallet-overflow.png)
+
+We now have `0x002e6e72` = 3042930 in our wallet!
 
 {% hint style="info" %}
 Remember that a string always ends up with a `NULL` character
 {% endhint %}
 
-But then, why overwriting only the balance you may ask? Why not also overwriting the status to be an moderator?
+But then, why overwriting only the balance you may ask? Why not also overwriting the status to be a moderator? 
 
-When overwriting the money variable, we didn't have to write a specific value, we just wanted to be more rich, so we just we just typed random text to overwrite the memory area where your balance is stored. If we were clever, we could also look in the ASCII table which printable character represent the higher value. Unfortunately, the highest value is the non-printable character `DEL`, so we could use the `~` instead \(`0x7e` in hexadecimal\).
+When overwriting the money variable, we didn't have to write a specific value, we just wanted to be more rich, so we just we just typed random text to overwrite the memory area where your balance is stored. If we were clever, we could also look in the ASCII table which printable character represent the higher value. Unfortunately, the highest value is the non-printable character `DEL`, so we could use the `~` instead \(`0x7e` in hexadecimal\). So, we can change our name to "Queen Daenerys of the House Targary~~~" in order to have `0x007f7f7f` = 8355711.
 
-&lt;img with money ~~~&gt;
+![Optimised waller overflow](.gitbook/assets/game-waller-overflow-opt.png)
 
-But let's get back to our initial question: what if we want to overwrite the status variable. What if the status could only be `0x00000000` \(moderators\), `0x00000001` \(allies\) or `0x00000002` \(enemies\). What we could do is to overwrite the balance variable with four character \(the size of an integer\) and stop there. The `NULL` string terminator character of the new name would overwrite the first byte of the status integer variable. Since the integers are stored in little-endian, overwriting the first byte will actually overwrite the least significant bit and thus would change the value to `0x00000000`.
+But let's get back to our initial question: what if we want to overwrite the status variable. Status can only be `0x00000000` \(moderators\), `0x00000001` \(allies\) or `0x00000002` \(enemies\). What we can do is to overwrite the balance variable with four characters \(the size of an integer\) and stop there. The `NULL` string terminator character of the new name would overwrite the first byte of the status integer variable. Since the integers are stored in little-endian, overwriting the first byte will actually overwrite the least significant bit and thus would change the value to `0x00000000`.
 
-&lt;img with NULL terminated overwriting status&gt;
+![Status overflowed](.gitbook/assets/game-status-overflow.png)
 
 ### Control the execution flow
 
@@ -72,9 +74,9 @@ In the first example, we overwrite local variables located right after the overf
 This could be done only if the vulnerable buffer is actually located in the current stack frame
 {% endhint %}
 
-If we re-use the previous example with the online game, we would need to overflow the name variable, overwrite the status and the inventory list, then we should have right after that the saved `ebp` and finally the return address.
+If we re-use the previous example with the online game, we would need to overflow the name variable, overwrite the status and the inventory list, then we should have right after that the saved `ebp` and finally the return address. Here is the stack if we change our name to "Daenerys of the House Targaryen the First of Her Name".
 
-&lt;img of stack&gt;
+![Return address overflowed](.gitbook/assets/ret-overflow.png)
 
 At the end of the function, when the epilog is executed, the recovered stack frame from the caller might be completely wrong \(depending how you overwrite the saved `ebp`\), but this shouldn't be a problem, you now have control of the execution flow and can decide what can be executed next.
 
@@ -147,6 +149,10 @@ When compiling, don't forget to use the option `-fno-stack-protector` to remove 
 $ gcc login.c -o login -fno-stack-protector
 ```
 
+{% hint style="info" %}
+`gcc` is not going to be happy and will throw some warning because the function `gets` is dangerous. You can ignore the warning and proceed. Here we want to be vulnerable.
+{% endhint %}
+
 Now you can test the application:
 
 ```text
@@ -185,11 +191,108 @@ Enter password: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 As you can see, whenever you send a password too long, the application crash with the following error message:
 
 ```text
-*** stack smashing detected ***: ./login terminated                                                                                 
-Aborted
+Segmentation fault (core dumped)
+```
+
+The reason is because the **return address** has been overwritten with my long "AAAAA...", and therefore, at the end of the epilog, when executing the instruction `ret`, the CPU tries to jump at the address stored in what used to be the return address but is now 0x41414141 \(AAAA in ASCII\). 0x41414141 is not a valid address, hence the crash. 
+
+Let's validate this assumption with gdb:
+
+```text
+$ gdb -q login
+Reading symbols from login...(no debugging symbols found)...done.
+(gdb) set disassembly-flavor intel
+(gdb) disassemble verify_password
+Dump of assembler code for function verify_password:
+   0x080484b5 <+0>:	push   ebp
+   0x080484b6 <+1>:	mov    ebp,esp
+   0x080484b8 <+3>:	sub    esp,0x18
+   0x080484bb <+6>:	sub    esp,0xc
+   0x080484be <+9>:	push   0x80485a2
+   0x080484c3 <+14>:	call   0x8048330 <printf@plt>
+   0x080484c8 <+19>:	add    esp,0x10
+   0x080484cb <+22>:	sub    esp,0xc
+   0x080484ce <+25>:	lea    eax,[ebp-0x18]
+   0x080484d1 <+28>:	push   eax
+   0x080484d2 <+29>:	call   0x8048340 <gets@plt>
+   0x080484d7 <+34>:	add    esp,0x10
+   0x080484da <+37>:	sub    esp,0x8
+   0x080484dd <+40>:	push   0x80485b3
+   0x080484e2 <+45>:	lea    eax,[ebp-0x18]
+   0x080484e5 <+48>:	push   eax
+   0x080484e6 <+49>:	call   0x8048320 <strcmp@plt>
+   0x080484eb <+54>:	add    esp,0x10
+   0x080484ee <+57>:	test   eax,eax
+   0x080484f0 <+59>:	jne    0x80484f9 <verify_password+68>
+   0x080484f2 <+61>:	mov    eax,0x1
+   0x080484f7 <+66>:	jmp    0x80484fe <verify_password+73>
+   0x080484f9 <+68>:	mov    eax,0x0
+   0x080484fe <+73>:	leave  
+   0x080484ff <+74>:	ret    
+End of assembler dump.
+(gdb) break *0x080484ff
+Breakpoint 1 at 0x80484ff
+(gdb) run
+Starting program: /home/lab/login 
+Enter password: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+Breakpoint 1, 0x080484ff in verify_password ()
+(gdb) x/x $esp
+0xbfffeeec:	0x41414141
+(gdb) nexti
+0x41414141 in ?? ()
+(gdb) info registers eip
+eip            0x41414141	0x41414141
+(gdb) x/10i $eip
+=> 0x41414141:	Cannot access memory at address 0x41414141
+```
+
+When looking at the different section of the memory \(stack, heap, .text. etc\), we can see that there nothing loaded in memory around the address `0x41414141`:
+
+```text
+(gdb) info proc mappings
+process 2493
+Mapped address spaces:
+
+	Start Addr   End Addr       Size     Offset objfile
+	 0x8048000  0x8049000     0x1000        0x0 /home/lab/login
+	 0x8049000  0x804a000     0x1000        0x0 /home/lab/login
+	 0x804a000  0x804b000     0x1000     0x1000 /home/lab/login
+	 0x804b000  0x806c000    0x21000        0x0 [heap]
+	0xb7e08000 0xb7e09000     0x1000        0x0 
+	0xb7e09000 0xb7fb9000   0x1b0000        0x0 /lib/i386-linux-gnu/libc-2.23.so
+	0xb7fb9000 0xb7fbb000     0x2000   0x1af000 /lib/i386-linux-gnu/libc-2.23.so
+	0xb7fbb000 0xb7fbc000     0x1000   0x1b1000 /lib/i386-linux-gnu/libc-2.23.so
+	0xb7fbc000 0xb7fbf000     0x3000        0x0 
+	0xb7fd5000 0xb7fd6000     0x1000        0x0 
+	0xb7fd6000 0xb7fd9000     0x3000        0x0 [vvar]
+	0xb7fd9000 0xb7fdb000     0x2000        0x0 [vdso]
+	0xb7fdb000 0xb7ffe000    0x23000        0x0 /lib/i386-linux-gnu/ld-2.23.so
+	0xb7ffe000 0xb7fff000     0x1000    0x22000 /lib/i386-linux-gnu/ld-2.23.so
+	0xb7fff000 0xb8000000     0x1000    0x23000 /lib/i386-linux-gnu/ld-2.23.so
+	0xbffdf000 0xc0000000    0x21000        0x0 [stack]
+
 ```
 
 ### Finding offset
+
+If we want leverage a buffer overflow to control the execution flow, we need to know starting from which offset do we start overwriting the return address. One way to know it would be to send the following pattern using gdb: "AAABBBCCCDDDEEEFFFGGGHHH..." \(i.e. the alphabet with each letter repeated three times\).
+
+The **return address** has been overwritten with `0x4b4b4a4a`, which in ASCII is "KKJJ", but since gdb is representing the data in little-endian, we should read the hexadecimal values backward: "JJKK". According to our generated pattern, "JJKK" is at an offset of 28. 
+
+To verify that, we could send a string of 28 "A" followed by 4 "B":
+
+```text
+(gdb) run
+The program being debugged has been started already.
+Start it from the beginning? (y or n) y
+Starting program: /home/lab/login 
+Enter password: AAAAAAAAAAAAAAAAAAAAAAAAAAAABBBB               
+
+Breakpoint 1, 0x080484ff in verify_password ()
+(gdb) x/x $esp
+0xbfffeeec:	0x42424242
+```
 
 AAAAAA and counting
 
