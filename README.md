@@ -24,6 +24,7 @@ What this course won’t teach you?
 Minimum requirements:
 
 * Being familiar with computer
+* Being familiar with Linux
 * Being able to read C code \(or similar language\)
 
 Before we start with the course, we will need to clarify and set the limit of what is a binary application and what are security vulnerabilities in the context of this course.

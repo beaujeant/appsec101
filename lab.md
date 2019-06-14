@@ -164,6 +164,13 @@ $ ./mul
 We will see later in chapter buffer overflow how the stack protector works and make it more complicate the exploitation of buffer overflow.
 {% endhint %}
 
+When exploiting the buffer overflow, we will inject in the stack the malicious code to execute. By default, the stack is non-executable \(also known as NX\), which means the CPU will not executed instructions located in the stack. In oder to disable this security feature, we will use the option `-z execstack` when compiling with GCC:
+
+```text
+$ gcc mul.c -o mul -fno-stack-protector -z execstack
+$ ./mul
+```
+
 ### GDB
 
 As mentioned earlier, `GDB` is a debugger. The main feature of a debugger is to set breakpoints and read memory areas and registers. Let’s debug our first application:

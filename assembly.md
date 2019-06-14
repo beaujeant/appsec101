@@ -41,7 +41,7 @@ void main(int argc, char** argv)
 
 ```text
 $ gcc hello-world.c -o hello
-$ gdb -q hello
+$ gdb hello -q
 Reading symbols from hello...(no debugging symbols found)...done.
 (gdb) set disassembly-flavor intel
 (gdb) disassemble main
@@ -553,7 +553,7 @@ If we look at the function add, we have 3 integers and 1 char. Integers are 4 by
 
 ```text
 $ gcc add.c -o add
-$ gdb -q add
+$ gdb add -q
 Reading symbols from add...(no debugging symbols found)...done.
 (gdb) set disassembly-flavor intel
 (gdb) disassemble add
@@ -618,7 +618,7 @@ void print_hello()
 {% endcode-tabs %}
 
 ```text
-$ gdb -q hello
+$ gdb hello -q
 Reading symbols from hello...(no debugging symbols found)...done.
 (gdb) set disassembly-flavor intel
 (gdb) disassemble print_hello 
@@ -983,7 +983,7 @@ I forgot to mention but all arithmetic or logical operations mentioned [earlier]
 * **Z**​ero **F**​lag \(**ZF**\): indicates whether the result of the last operation is zero \(**ZF** = `1`\) or otherwise \(**ZF** = `0`\).
 * **S**​ign **F**​lag \(**SF**\): indicates whether the result of the last operation has its most significant bit set to `1` \(**SF** = `1`\) or set to `0` \(**SF** = `0`\)
 * **C**​arry **F**​lag \(**CF**\): indicates whether an arithmetic [carry](http://mathworld.wolfram.com/Carry.html) or [borrow](http://mathworld.wolfram.com/Borrow.html) has been done on the most significant bit position.
-* **O**​verflow **F**​lag \(**OF**\): indicates whether an arithmetic overflow has occurred in the last operation. More info about what is an arithmetic overflow in chapter [integer overflow](integer-overflow.md).
+* **O**​verflow **F**​lag \(**OF**\): indicates whether an arithmetic overflow has occurred in the last operation. More info about what is an arithmetic overflow in chapter [integer overflow]().
 
 Now, let's say we have a program that verifies a PIN code. If the PIN is correct \(_first_ branch\), `ebx` is set to `true` with the value `0x00000001`, otherwise, if the PIN is incorrect \(_second_ branch\), `ebx` is set to `false` with the value `0x00000000`. The PIN entered by the user is stored in `eax`. The valid PIN is 1234 \(0x4d2 in hexadecimal\).
 
@@ -1060,7 +1060,7 @@ jne 0x08048400 ; jump is taken
 
 #### jg - jump if greater \(with signed integer\)
 
-Integer values can be compared either as a _signed_ integer or _unsigned_ integer. In order to evaluate which value is greater/higher than another one with **signed** integer, we can use once again the `sub` instruction and look if the **S**ign **F**lag \(**SF**\) has the same value as the **O**verflow **F**lag \(**OF**\). We will see later in chapter [integer overflow](integer-overflow.md) why using those flag registers, but for now, just trust me, it works.
+Integer values can be compared either as a _signed_ integer or _unsigned_ integer. In order to evaluate which value is greater/higher than another one with **signed** integer, we can use once again the `sub` instruction and look if the **S**ign **F**lag \(**SF**\) has the same value as the **O**verflow **F**lag \(**OF**\). We will see later in chapter [integer overflow]() why using those flag registers, but for now, just trust me, it works.
 
 The `jg` instruction also check a third flag, the **Z**ero **F**lag \(**ZF**\). Indeed, the condition verifies if the first operand is greater than the second, so if the they are equals, this doesn't work. So, the jump is taken if **SF**=**OF** _AND_ if **ZF**=`false`.
 
@@ -1174,7 +1174,7 @@ jg 0x08048400       ; jump is taken
 
 #### ja - jump if above \(with unsigned integer\)
 
-When comparing **unsigned** integer, the jump instruction will check other flags than `jg`. Once again, we will have a closer look at it in chapter [integer overflow](integer-overflow.md), but basically, `ja` check if the **C**arry **F**lag \(CF\) is `false`. Since the condition doesn't include equality, the instruction will also check if the **Z**ero **F**lag is `false`. So, the jump is taken if **CF**=`false` _AND_ if **ZF**=`false`.
+When comparing **unsigned** integer, the jump instruction will check other flags than `jg`. Once again, we will have a closer look at it in chapter [integer overflow](), but basically, `ja` check if the **C**arry **F**lag \(CF\) is `false`. Since the condition doesn't include equality, the instruction will also check if the **Z**ero **F**lag is `false`. So, the jump is taken if **CF**=`false` _AND_ if **ZF**=`false`.
 
 ```text
 mov eax, 0x123
@@ -1599,7 +1599,7 @@ int add(int first, int second)
 {% endcode-tabs %}
 
 ```text
-$ gdb -q simple-add
+$ gdb simple-add -q
 Reading symbols from simple-add...(no debugging symbols found)...done.
 (gdb) set disassembly-flavor intel
 (gdb) disassemble main
