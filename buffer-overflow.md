@@ -391,9 +391,7 @@ The printf we want to execute is located at `0x08048492`. But in order to print 
 
 But now, what if we wanted to execute our own function/instructions? We would first need to inject into memory the instructions, find the address then overwrite the return address with it. How to inject instruction into memory? Simple, we just embed it within the string we use to overflow the buffer. Either before the address or after. Those instructions that we embed is actually called a **shellcode**.
 
-&lt;img shellcode before return address - long string payload + representation in memory&gt;
-
-&lt;img shellcode after return address&gt;
+![Before ret \(As\) or after \(Bs\)](.gitbook/assets/overflow-abc.jpeg)
 
 As a beginner course, we will not see how to create our own function in assembly, instead, we will use shellcodes from a [shell-storm.org](http://shell-storm.org/shellcode/). This is kind of a library for shellcode. First we need to find the right platform. In our case, we need **Linux** &gt; **Intel x86**. In our example, we will use [bin/cat /etc/passwd](http://shell-storm.org/shellcode/files/shellcode-571.php), a shellcode that will read and print the content of the file `/etc/passwd`.
 
