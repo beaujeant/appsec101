@@ -21,7 +21,7 @@ The executable \(ELF or PE file\) contains \(among others\) the following parts:
 * **Sections**: Contains data used by the program \(instruction, static variable, etc\). You can many sections \(up to 65535\) with using any name, however, the most common section names are _.text_, _.data_ and _.bss_.
   * _.text_: Typically contains instructions \(the code executed by the CPU\).
   * _.data_: Typically contains initialized data \(e.g. `char string[] = "Hello World";`\).
-  * _.bdd_: Typically contains all global variables and static variables that are initialized to zero or do not have explicit initialization in the source code \(e.g. `static int i;`\).
+  * _.bss_: Typically contains all global variables and static variables that are initialized to zero or do not have explicit initialization in the source code \(e.g. `static int i;`\).
 * **Entry Point**: The address where to start once the application is loaded in memory
 * **Import table**: Most applications rely on functions located in different _libraries_ \(i.e. a collection of pre-compiled functions\). So for instance, when using `printf`, the code of the function is not in the program itself but in the library `libc.so` \(in Linux\). When the application is run, the startup routine loads all of the libraries that the application uses and map them into memory. This can be done thanks to the list of libraries \(and function\) from the _import table_.
 
