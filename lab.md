@@ -54,13 +54,11 @@ $ cat /proc/sys/kernel/ramdomize_va_space
 
 You can use a text editor and change the content to `0` to disable ASLR, however, the value will be reset to `2` after the next boot. To change the configuration permantly, you can add the following line in the file `/etc/sysctl.conf`:
 
-{% code-tabs %}
-{% code-tabs-item title="/etc/sysctl.conf" %}
+{% code title="/etc/sysctl.conf" %}
 ```text
 kernel.randomize_va_space = 0
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 You will need sudo privileges to add that line:
 
@@ -82,8 +80,7 @@ For this course, we only need 2 tools: **GDB** and **GCC**. Both tools are alrea
 
 Let’s compile our first C code for this course. Use your favorite text editor and create the following `mul.c` file:
 
-{% code-tabs %}
-{% code-tabs-item title="mul.c" %}
+{% code title="mul.c" %}
 ```c
 #include <stdio.h>
 
@@ -136,8 +133,7 @@ int mul(int x, int y)
     return result;
 }
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 Learning C is beyond the scope of this course, so we assume you understand what this code does, but just to make sure we are on the same page: it multiplies `4` by `3` by using only the addition operation then it prints the result.
 

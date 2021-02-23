@@ -73,7 +73,7 @@ Key to Flags:
 
 In this example, once the dynamic linker has allocated the 4G of virtual memory, the section _.text_ of `/bin/ls` will be copied at the address `0x08049df0`.
 
-Memory location are addressed in bytes \(8 bits\). This means the address `0x00000000` is pointing to the first byte in memory, the address `0x00000001` is pointing to the second byte \(or 9th bit\) in memory, etc.  Reading or writing from/to a speicifc memory location could means 1, 2 or 4 bytes depending on insturction, but the given address will be always pointing to one byte in memory.
+Memory location are addressed in bytes \(8 bits\). This means the address `0x00000000` is pointing to the first byte in memory, the address `0x00000001` is pointing to the second byte \(or 9th bit\) in memory, etc. Reading or writing from/to a speicifc memory location could means 1, 2 or 4 bytes depending on insturction, but the given address will be always pointing to one byte in memory.
 
 ## Memory layout
 
@@ -235,8 +235,8 @@ A shared library used by multiple applications means the library is loaded only 
 
 The function `printf` for instance is located in the shared library `/lib/i386-linux-gnu/libc.so.6`. By default, GCC always includes the shared library `libc`, so there is no need to specify it when compiling. For instance, let’s consider the following code `hello.c`:
 
-{% code-tabs %}
-{% code-tabs-item title="hello.c" %}
+{% tabs %}
+{% tab title="hello.c" %}
 ```c
 #include <stdio.h>
 
@@ -247,8 +247,8 @@ int main()
     return 0;
 }
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endtab %}
+{% endtabs %}
 
 If we compile with `gcc`, then use the command `ldd` to print the shared object dependencies, we can see that the shared `libc` library has been linked:
 
@@ -350,13 +350,13 @@ Instructions are stored one after another in memory, although not necessarily in
 
 Registers are small memory locations built into the CPU, which increase the read/write access speed \(typically within 1 CPU clock \[[15](https://techdifferences.com/difference-between-register-and-memory.html)\]\). Since this course cover 32-bit architectures only, registers are also 32-bit long.
 
-Most instructions executed by the CPU involve \(at least\) one register as operand. Besides the advantageous fast access to register, the design of the machine language does not allow memory-to-memory operations \[[16](https://www.quora.com/Why-can%E2%80%99t-two-operands-both-be-memory-operands-in-assembly-language)\]. So this means if we want to add two values stored in memory, we won't tell the CPU: 
+Most instructions executed by the CPU involve \(at least\) one register as operand. Besides the advantageous fast access to register, the design of the machine language does not allow memory-to-memory operations \[[16](https://www.quora.com/Why-can%E2%80%99t-two-operands-both-be-memory-operands-in-assembly-language)\]. So this means if we want to add two values stored in memory, we won't tell the CPU:
 
 {% hint style="danger" %}
 _add_ the value located at the address `0x11223344` with the value located at the address `0x44332211` and save the result in `0x12345678`
 {% endhint %}
 
-Instead, we will tell the CPU: 
+Instead, we will tell the CPU:
 
 {% hint style="success" %}
 _move_ the value located at the address `0x11223344` in the register `EDX`, then _add_ the value located at the address `0x44332211`with the value in the register `EDX`
@@ -425,36 +425,36 @@ Remember the _ALU_ in chapter [CPU](cpu.md)? Well, _CF_, _PF_, _ZF_, _SF_ and _O
 
 ## References
 
-* \[[1](https://www.kingston.com/en/community/articledetail/articleid/29685)\] https://www.kingston.com/en/community/articledetail/articleid/29685
-* \[[2](https://www.storagereview.com/ssd_vs_hdd)\] https://www.storagereview.com/ssd\_vs\_hdd
-* \[[3](https://www.transcend-info.com/Support/FAQ-292)\] https://www.transcend-info.com/Support/FAQ-292
-* \[[4](https://medium.com/@StueyGK/static-libraries-vs-dynamic-libraries-af78f0b5f1e4)\] https://medium.com/@StueyGK/static-libraries-vs-dynamic-libraries-af78f0b5f1e4
-* \[[5](https://www.brianmadden.com/opinion/The-4GB-Windows-Memory-Limit-What-does-it-really-mean)\] https://www.brianmadden.com/opinion/The-4GB-Windows-Memory-Limit-What-does-it-really-mean
-* [`open`](https://en.wikipedia.org/wiki/Open_%28system_call%29): https://en.wikipedia.org/wiki/Open\_%28system\_call%29
-* [`read`](https://en.wikipedia.org/wiki/Read_%28system_call%29): https://en.wikipedia.org/wiki/Read\_%28system\_call%29
-* [`write`](https://en.wikipedia.org/wiki/Write_%28system_call%29): https://en.wikipedia.org/wiki/Write\_%28system\_call%29
-* \[[6](https://stackoverflow.com/a/5130690)\] https://stackoverflow.com/a/5130690
-* \[[7](https://stackoverflow.com/a/11906590)\] https://stackoverflow.com/a/11906590
-* \[[8](https://stackoverflow.com/a/8385488)\] https://stackoverflow.com/a/8385488
-* \[[9](https://stackoverflow.com/a/3889495)\] https://stackoverflow.com/a/3889495
-* [`malloc`](http://www.cplusplus.com/reference/cstdlib/malloc/): http://www.cplusplus.com/reference/cstdlib/malloc/
-* [`calloc`](http://www.cplusplus.com/reference/cstdlib/calloc/): http://www.cplusplus.com/reference/cstdlib/calloc/
-* [`realloc`](http://www.cplusplus.com/reference/cstdlib/realloc/): http://www.cplusplus.com/reference/cstdlib/realloc/
-* [`free`](http://www.cplusplus.com/reference/cstdlib/free/): http://www.cplusplus.com/reference/cstdlib/free/
-* [`pow`](http://www.cplusplus.com/reference/cmath/pow/): http://www.cplusplus.com/reference/cmath/pow/
-* [`printf`](http://www.cplusplus.com/reference/cstdio/printf/): http://www.cplusplus.com/reference/cstdio/printf/
-* [`scanf`](http://www.cplusplus.com/reference/cstdio/scanf/): http://www.cplusplus.com/reference/cstdio/scanf/
-* [`fopen`](http://www.cplusplus.com/reference/cstdio/fopen/): http://www.cplusplus.com/reference/cstdio/fopen/
-* \[[10](http://www.equestionanswers.com/c/c-printf-scanf-working-principle.php)\] http://www.equestionanswers.com/c/c-printf-scanf-working-principle.php
-* [prototype](https://en.wikipedia.org/wiki/Function_prototype): https://en.wikipedia.org/wiki/Function\_prototype
-* \[[11](https://www.slideshare.net/kentarokawamoto/runtime-symbol-resolution)\] https://www.slideshare.net/kentarokawamoto/runtime-symbol-resolution
-* \[[12](https://reverseengineering.stackexchange.com/a/20214)\] https://reverseengineering.stackexchange.com/a/20214
-* \[[13](https://en.wikipedia.org/wiki/Data_segment)\] https://en.wikipedia.org/wiki/Data\_segment
-* \[[14](https://fgiesen.wordpress.com/2016/08/25/how-many-x86-instructions-are-there/)\] https://fgiesen.wordpress.com/2016/08/25/how-many-x86-instructions-are-there/
-* \[[15](https://techdifferences.com/difference-between-register-and-memory.html)\] https://techdifferences.com/difference-between-register-and-memory.html
-* \[[16](https://www.quora.com/Why-can%E2%80%99t-two-operands-both-be-memory-operands-in-assembly-language)\] https://www.quora.com/Why-can%E2%80%99t-two-operands-both-be-memory-operands-in-assembly-language
-* \[[17](https://en.wikibooks.org/wiki/X86_Assembly/X86_Architecture#x86_Architecture)\] https://en.wikibooks.org/wiki/X86\_Assembly/X86\_Architecture\#x86\_Architecture
-* [carry](http://mathworld.wolfram.com/Carry.html): http://mathworld.wolfram.com/Carry.html
-* [borrow](http://mathworld.wolfram.com/Borrow.html): http://mathworld.wolfram.com/Borrow.html
-* \[[18](https://en.wikipedia.org/wiki/Overflow_flag)\] https://en.wikipedia.org/wiki/Overflow\_flag
+* \[[1](https://www.kingston.com/en/community/articledetail/articleid/29685)\] [https://www.kingston.com/en/community/articledetail/articleid/29685](https://www.kingston.com/en/community/articledetail/articleid/29685)
+* \[[2](https://www.storagereview.com/ssd_vs_hdd)\] [https://www.storagereview.com/ssd\_vs\_hdd](https://www.storagereview.com/ssd_vs_hdd)
+* \[[3](https://www.transcend-info.com/Support/FAQ-292)\] [https://www.transcend-info.com/Support/FAQ-292](https://www.transcend-info.com/Support/FAQ-292)
+* \[[4](https://medium.com/@StueyGK/static-libraries-vs-dynamic-libraries-af78f0b5f1e4)\] [https://medium.com/@StueyGK/static-libraries-vs-dynamic-libraries-af78f0b5f1e4](https://medium.com/@StueyGK/static-libraries-vs-dynamic-libraries-af78f0b5f1e4)
+* \[[5](https://www.brianmadden.com/opinion/The-4GB-Windows-Memory-Limit-What-does-it-really-mean)\] [https://www.brianmadden.com/opinion/The-4GB-Windows-Memory-Limit-What-does-it-really-mean](https://www.brianmadden.com/opinion/The-4GB-Windows-Memory-Limit-What-does-it-really-mean)
+* [`open`](https://en.wikipedia.org/wiki/Open_%28system_call%29): [https://en.wikipedia.org/wiki/Open\_%28system\_call%29](https://en.wikipedia.org/wiki/Open_%28system_call%29)
+* [`read`](https://en.wikipedia.org/wiki/Read_%28system_call%29): [https://en.wikipedia.org/wiki/Read\_%28system\_call%29](https://en.wikipedia.org/wiki/Read_%28system_call%29)
+* [`write`](https://en.wikipedia.org/wiki/Write_%28system_call%29): [https://en.wikipedia.org/wiki/Write\_%28system\_call%29](https://en.wikipedia.org/wiki/Write_%28system_call%29)
+* \[[6](https://stackoverflow.com/a/5130690)\] [https://stackoverflow.com/a/5130690](https://stackoverflow.com/a/5130690)
+* \[[7](https://stackoverflow.com/a/11906590)\] [https://stackoverflow.com/a/11906590](https://stackoverflow.com/a/11906590)
+* \[[8](https://stackoverflow.com/a/8385488)\] [https://stackoverflow.com/a/8385488](https://stackoverflow.com/a/8385488)
+* \[[9](https://stackoverflow.com/a/3889495)\] [https://stackoverflow.com/a/3889495](https://stackoverflow.com/a/3889495)
+* [`malloc`](http://www.cplusplus.com/reference/cstdlib/malloc/): [http://www.cplusplus.com/reference/cstdlib/malloc/](http://www.cplusplus.com/reference/cstdlib/malloc/)
+* [`calloc`](http://www.cplusplus.com/reference/cstdlib/calloc/): [http://www.cplusplus.com/reference/cstdlib/calloc/](http://www.cplusplus.com/reference/cstdlib/calloc/)
+* [`realloc`](http://www.cplusplus.com/reference/cstdlib/realloc/): [http://www.cplusplus.com/reference/cstdlib/realloc/](http://www.cplusplus.com/reference/cstdlib/realloc/)
+* [`free`](http://www.cplusplus.com/reference/cstdlib/free/): [http://www.cplusplus.com/reference/cstdlib/free/](http://www.cplusplus.com/reference/cstdlib/free/)
+* [`pow`](http://www.cplusplus.com/reference/cmath/pow/): [http://www.cplusplus.com/reference/cmath/pow/](http://www.cplusplus.com/reference/cmath/pow/)
+* [`printf`](http://www.cplusplus.com/reference/cstdio/printf/): [http://www.cplusplus.com/reference/cstdio/printf/](http://www.cplusplus.com/reference/cstdio/printf/)
+* [`scanf`](http://www.cplusplus.com/reference/cstdio/scanf/): [http://www.cplusplus.com/reference/cstdio/scanf/](http://www.cplusplus.com/reference/cstdio/scanf/)
+* [`fopen`](http://www.cplusplus.com/reference/cstdio/fopen/): [http://www.cplusplus.com/reference/cstdio/fopen/](http://www.cplusplus.com/reference/cstdio/fopen/)
+* \[[10](http://www.equestionanswers.com/c/c-printf-scanf-working-principle.php)\] [http://www.equestionanswers.com/c/c-printf-scanf-working-principle.php](http://www.equestionanswers.com/c/c-printf-scanf-working-principle.php)
+* [prototype](https://en.wikipedia.org/wiki/Function_prototype): [https://en.wikipedia.org/wiki/Function\_prototype](https://en.wikipedia.org/wiki/Function_prototype)
+* \[[11](https://www.slideshare.net/kentarokawamoto/runtime-symbol-resolution)\] [https://www.slideshare.net/kentarokawamoto/runtime-symbol-resolution](https://www.slideshare.net/kentarokawamoto/runtime-symbol-resolution)
+* \[[12](https://reverseengineering.stackexchange.com/a/20214)\] [https://reverseengineering.stackexchange.com/a/20214](https://reverseengineering.stackexchange.com/a/20214)
+* \[[13](https://en.wikipedia.org/wiki/Data_segment)\] [https://en.wikipedia.org/wiki/Data\_segment](https://en.wikipedia.org/wiki/Data_segment)
+* \[[14](https://fgiesen.wordpress.com/2016/08/25/how-many-x86-instructions-are-there/)\] [https://fgiesen.wordpress.com/2016/08/25/how-many-x86-instructions-are-there/](https://fgiesen.wordpress.com/2016/08/25/how-many-x86-instructions-are-there/)
+* \[[15](https://techdifferences.com/difference-between-register-and-memory.html)\] [https://techdifferences.com/difference-between-register-and-memory.html](https://techdifferences.com/difference-between-register-and-memory.html)
+* \[[16](https://www.quora.com/Why-can%E2%80%99t-two-operands-both-be-memory-operands-in-assembly-language)\] [https://www.quora.com/Why-can%E2%80%99t-two-operands-both-be-memory-operands-in-assembly-language](https://www.quora.com/Why-can%E2%80%99t-two-operands-both-be-memory-operands-in-assembly-language)
+* \[[17](https://en.wikibooks.org/wiki/X86_Assembly/X86_Architecture#x86_Architecture)\] [https://en.wikibooks.org/wiki/X86\_Assembly/X86\_Architecture\#x86\_Architecture](https://en.wikibooks.org/wiki/X86_Assembly/X86_Architecture#x86_Architecture)
+* [carry](http://mathworld.wolfram.com/Carry.html): [http://mathworld.wolfram.com/Carry.html](http://mathworld.wolfram.com/Carry.html)
+* [borrow](http://mathworld.wolfram.com/Borrow.html): [http://mathworld.wolfram.com/Borrow.html](http://mathworld.wolfram.com/Borrow.html)
+* \[[18](https://en.wikipedia.org/wiki/Overflow_flag)\] [https://en.wikipedia.org/wiki/Overflow\_flag](https://en.wikipedia.org/wiki/Overflow_flag)
 
