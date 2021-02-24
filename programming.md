@@ -6,7 +6,8 @@
 
 Usually, when learning a new language, the first code we teach to students is the `Hello World!`program. The goal of this program is to display the text `Hello World!`. In C, the `Hello World!` program looks like this:
 
-{% code title="hello-world.c" %}
+{% code-tabs %}
+{% code-tabs-item title="hello-world.c" %}
 ```c
 #include <stdio.h>
 
@@ -15,7 +16,8 @@ void main ()
     printf("Hello World!");
 }
 ```
-{% endcode %}
+{% endcode-tabs-item %}
+{% endcode-tabs %}
 
 Let’s try it! First, we create a new file `hello.c` with the code above, then execute the following two commands:
 
@@ -463,7 +465,7 @@ lowest = february_temperature[0];
 for ( day = 1; day < 31; day++ ) 
 {
     if ( highest < february_temperature[day] )
-        highest = february_temperature[day];
+        highest = february[day];
 
     if ( lowest > february_temperature[day] )
         lowest = february_temperature[day];
@@ -513,7 +515,8 @@ void get_highest_and_lowest_temperature( int month[], int days_in_month )
 
 Now, our function is ready to be used. We can call it as follow:
 
-{% code title="func.c" %}
+{% code-tabs %}
+{% code-tabs-item title="func.c" %}
 ```c
 #include <stdio.h>
 
@@ -546,7 +549,8 @@ void main ()
     // ...
 }
 ```
-{% endcode %}
+{% endcode-tabs-item %}
+{% endcode-tabs %}
 
 When compiled and executed, we have the following output:
 
@@ -658,7 +662,8 @@ Variables declared outside all functions are called _global_ variable.
 
 Another interesting – and maybe counterintuitive behavior – is that whenever you send a variable as an argument, you actually send a copy of its content rather than the variable itself. This means if a function modifies the value of an argument, the change will take place only within that function:
 
-{% code title="add-example.c" %}
+{% code-tabs %}
+{% code-tabs-item title="add-example.c" %}
 ```c
 #include <stdio.h>
 
@@ -682,7 +687,8 @@ void main ()
     printf( "c: %d \n", c );
 }
 ```
-{% endcode %}
+{% endcode-tabs-item %}
+{% endcode-tabs %}
 
 The function will output:
 
@@ -754,7 +760,8 @@ We’ve seen earlier in chapter [CPU](cpu.md), strings are actually an array of 
 
 Here is an example to print all program arguments:
 
-{% code title="read-args.c" %}
+{% code-tabs %}
+{% code-tabs-item title="read-args.c" %}
 ```c
 #include <stdio.h>
 
@@ -764,21 +771,21 @@ int main (int argc, char *argv[])
 
     while(i < argc)
     {
-        printf("%d. %s \n", i, argv[i]);
+        printf("%d. %s \n", i, arv[i]);
         i++;
     }
 }
 ```
-{% endcode %}
+{% endcode-tabs-item %}
+{% endcode-tabs %}
 
 When executed:
 
 ```text
 $ gcc read-args.c -o read-args
 $ ./read-args hello world
-0. ./args 
-1. hello 
-2. worl d
+hello
+world
 ```
 
 ## Common functions

@@ -10,9 +10,9 @@ What will this course teach you?
 * Basics of C programming
 * Basics of assembly
 * Understanding and exploiting basic buffer overflow
-* ~~Understanding and exploiting basic use-after-free vulnerability~~
-* ~~Understanding and exploiting basic format string vulnerability~~
-* ~~Understanding and exploiting basic integer overflow and underflow vulnerabilities~~
+* ~~Understanding and exploiting basic use-after-free vulnerability~~ \(not yet\)
+* ~~Understanding and exploiting basic format string vulnerability~~ \(not yet\)
+* ~~Understanding and exploiting basic integer overflow and underflow vulnerabilities~~ \(not yet\)
 
 What this course won’t teach you?
 

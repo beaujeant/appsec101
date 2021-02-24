@@ -104,7 +104,8 @@ In this chapter, we will see how to identify a buffer overflow and control the e
 
 Here is the source code of the application we will use to demonstrate the exploitation steps:
 
-{% code title="login.c" %}
+{% code-tabs %}
+{% code-tabs-item title="login.c" %}
 ```c
 #include <stdio.h>
 
@@ -135,7 +136,8 @@ int verify_password()
         return 0;
 }
 ```
-{% endcode %}
+{% endcode-tabs-item %}
+{% endcode-tabs %}
 
 When compiling, don't forget to use the option `-fno-stack-protector` to remove the stack protection against buffer overflow and use `-z execstack` to make the stack executable:
 
