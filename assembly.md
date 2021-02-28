@@ -26,8 +26,7 @@ The fields in bracket are optional. Each instruction has to be on a different li
 
 Let see how our `hello-world.c` application has been translated by the compiler:
 
-{% code-tabs %}
-{% code-tabs-item title="hello-world.c" %}
+{% code title="hello-world.c" %}
 ```c
 #include <stdio.h>
 
@@ -36,8 +35,7 @@ void main(int argc, char** argv)
     printf("Hello World!");
 }
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 ```text
 $ gcc hello-world.c -o hello
@@ -514,8 +512,7 @@ mov eax,DWORD PTR [esp] ; Copies the 32-bit value at the top of the stack in EAX
 
 Function variables are usually located in the stack. The size in memory depends on the type of the variable when declared in C. Whenever we enter a function, we usually have the _prolog_, which is preparing the stack frame, then we have the memory allocation, which basically subtract the total size of all function memory to the stack pointer.
 
-{% code-tabs %}
-{% code-tabs-item title="add.c" %}
+{% code title="add.c" %}
 ```c
 #include <stdio.h>
 
@@ -546,8 +543,7 @@ void add(int a, int b)
     printf("%d + %d = %c%d", x, y, sign, sum);
 }
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 If we look at the function add, we have 3 integers and 1 char. Integers are 4 bytes long and sign are 1 byte longs. We should therefore have \(3 x 4\) + 1 = 13 bytes allocated at the beginning of the function.
 
@@ -596,8 +592,7 @@ The order of the variables in the stack doesn't necessary match the order when v
 
 Local variables can also contain arrays or a custom structures. Let's consider the following code:
 
-{% code-tabs %}
-{% code-tabs-item title="hello.c" %}
+{% code title="hello.c" %}
 ```c
 #include <stdio.h>
 
@@ -614,8 +609,7 @@ void print_hello()
     printf("var hello: %s", hello);
 }
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 ```text
 $ gdb hello -q
@@ -1567,8 +1561,7 @@ Here again, this is not a rule but by convention, the returned value is stored i
 
 Here is a short summary of what is going on whenever a function is called in assembly. To illustrate it, we will use the following program and focus on the `call` to the function `add`:
 
-{% code-tabs %}
-{% code-tabs-item title="simple-add.c" %}
+{% code title="simple-add.c" %}
 ```c
 #include <stdio.h>
 
@@ -1595,8 +1588,7 @@ int add(int first, int second)
      return result;
  }
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 ```text
 $ gdb simple-add -q
