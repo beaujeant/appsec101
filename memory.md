@@ -3,11 +3,11 @@
 Memory is a core component of a computer system. Without memory, there would be no place to store the instructions read and executed by the CPU and there would be no place to store the arguments and output of operations. A CPU without memory would be thus useless. But what is _memory_? Before going further, it is important to differentiate **storage** and **memory**. While those two terms are interchangeable in some literature, this course will differentiate them.
 
 * **Storage** is the component of your computer that allows you to store and access data on a _long-term_ basis \[[1](https://www.kingston.com/en/community/articledetail/articleid/29685)\]. The most known storage media are SSD, hard drive or USB flash drive. The main difference with memory components is that storage systems retain the data, even when not powered. This means when the computer switches off, memory clears its content while storage data remains intact.
-* **Memory** is the component of your computer that allows you to access and store data meant for a _short-term_ use. The mains advantage of memory is the fast access \(read and write\) compare to storage media: between 200-550MB/s for SSD storage \[[2](https://www.storagereview.com/ssd_vs_hdd)\] and between 17-25.6GB/s for DDR4 memory \[[3](https://www.transcend-info.com/Support/FAQ-292)\].
+* **Memory** is the component of your computer that allows you to access and store data meant for a _short-term_ use. The main advantages of memory is the fast access \(read and write\) compare to storage media: between 200-550MB/s for SSD storage \[[2](https://www.storagereview.com/ssd_vs_hdd)\] and between 17-25.6GB/s for DDR4 memory \[[3](https://www.transcend-info.com/Support/FAQ-292)\].
 
 While the storage contains the data at rest, the memory contains the data currently in used, including the instructions of all applications running and the data associated.
 
-So memory is the place where the data is stored. As we’ve seen in the chapter [Central Processing Unit](cpu.md), data could be anything: variable, image, instruction, etc. In the memory, there is nothing that explains what type of data is stored at any location. There is nothing that explains where the data start and where it ends. Most data type doesn’t have delimiter that tells “you reach the end of the variable”. So that means if you pick data at a random address in the memory, you shouldn’t be able to tell whether this value is meant to be an integer, an instruction or a string. Stored data only makes sense when manipulated by instructions.
+So, memory is the place where the data is stored. As we’ve seen in the chapter [Central Processing Unit](cpu.md), data could be anything: variable, image, instruction, etc. In the memory, there is nothing that explains what type of data is stored at any location. There is nothing that explains where the data start and where it ends. Most data type doesn’t have delimiter that tells “you reach the end of the variable”. So that means if you pick data at a random address in the memory, you shouldn’t be able to tell whether this value is meant to be an integer, an instruction or a string. Stored data only makes sense when manipulated by instructions that is aware of the context.
 
 ## ELF/PE file
 
@@ -15,33 +15,39 @@ The translation between a code written in programming language, such as C, and m
 
 The two most known application formats are **ELF** \(Executable and Linkable Format\) for _Linux_ application and **PE** \(Portable Executable\) for _Windows_ application. _ELF_ and _PE_ formats are different but still share common main features. The loading process of an application is quite similar from Windows to Linux, therefore, this course will stay generic and give an overview of the process in general.
 
+![C &amp;gt; Object file &amp;gt; ELF](.gitbook/assets/compile.png)
+
 The executable \(ELF or PE file\) contains \(among others\) the following parts:
 
-* **Mapping**: Contains a map of what should be loaded from the file to which address \(offset\) in memory.
-* **Sections**: Contains data used by the program \(instruction, static variable, etc\). You can many sections \(up to 65535\) with using any name, however, the most common section names are _.text_, _.data_ and _.bss_.
+* **Entry Point**: The address where to start once the application is loaded in memory
+* **Sections**: A program usually contains several sections. A section corresponds to an address space of a program, which contains specific data \(instruction, static variable, etc\). You can have several sections \(up to 65535\) using any name, however, the most common section names are _.text_, _.data_ and _.bss_.
   * _.text_: Typically contains instructions \(the code executed by the CPU\).
   * _.data_: Typically contains initialized data \(e.g. `char string[] = "Hello World";`\).
   * _.bss_: Typically contains all global variables and static variables that are initialized to zero or do not have explicit initialization in the source code \(e.g. `static int i;`\).
-* **Entry Point**: The address where to start once the application is loaded in memory
-* **Import table**: Most applications rely on functions located in different _libraries_ \(i.e. a collection of pre-compiled functions\). So for instance, when using `printf`, the code of the function is not in the program itself but in the library `libc.so` \(in Linux\). When the application is run, the startup routine loads all of the libraries that the application uses and map them into memory. This can be done thanks to the list of libraries \(and function\) from the _import table_.
+* **Import table**: Most applications rely on functions located in different _libraries_ \(i.e. a collection of pre-compiled functions\). So, for instance when using `printf`, the code of the function is not in the program itself but in the library `libc.so` \(in Linux\). When the application is executed, the startup routine loads all libraries that the application uses and map them into memory. This can be done thanks to the list of libraries \(and function\) from the _import table_.
+* **Mapping**: Contains a map of what should be loaded from the file to which address \(offset\) in memory.
 
 {% hint style="info" %}
-Program can be compiled with static libraries or dynamic/shared libraries. Shared library means the code of imported functions reside in different libraries/files \(as we’ve seen with the import table\). Whilst static library means the actual code of imported functions is copied in the program itself so that the program doesn’t rely on different libraries/files \(the import table is thus empty\). \[[4](https://medium.com/@StueyGK/static-libraries-vs-dynamic-libraries-af78f0b5f1e4)\]
+Program can be compiled with static libraries or dynamic/shared libraries. Shared library means the instructions from imported functions reside in different libraries/files \(as we’ve seen with the import table\). Whilst static library means the actual instructions of imported functions are copied in the program itself so that the program doesn’t rely on different libraries/files \(the import table is thus empty\). \[[4](https://medium.com/@StueyGK/static-libraries-vs-dynamic-libraries-af78f0b5f1e4)\]
 {% endhint %}
 
 ## Memory address
 
-Once you run an application, the operating system will first allocate some space in memory to load the application. Since we are working with a 32-bit computer, the program can only access address in memory that fit within 32 bits \(due to the design of the CPU \[[5](https://www.brianmadden.com/opinion/The-4GB-Windows-Memory-Limit-What-does-it-really-mean)\]\), i.e. between `00000000000000000000000000000000` \(0\) and `11111111111111111111111111111111` \(4,294,967,295\). So by default, whenever you run an application, the operating system allocate 4GB \(4,294,967,295\) of _virtual memory_ for that application. It is important to understand the concept of _virtual memory_. The Operating System won’t be able to allocate 4GB in RAM for each application. First of all, because most computers won’t have enough memory to run more than 3 applications \(including the OS\) at the same time, but also because some data should be shared across all applications. So _virtual memory_ is rather an abstraction of the physical memory \(RAM\) where the data is actually stored in non-consecutive areas. This is a huge advantage for applications so that they don’t have to take into consideration how to distribute the data across the RAM and keep track where is what. Instead, applications see one unique continuous block of memory and let the operating system deal with the translation to the actual location of the data in RAM.
+Once you run an application, the operating system will first allocate some space in memory to load the application. Since we are working with a 32-bit computer, the program can only access addresses in memory that fit within 32 bits \(due to the design of the CPU \[[5](https://www.brianmadden.com/opinion/The-4GB-Windows-Memory-Limit-What-does-it-really-mean)\]\), which means between `00000000000000000000000000000000` \(0\) and `11111111111111111111111111111111` \(4,294,967,295\). So by default, whenever you run an application, the operating system allocate 4GB \(4,294,967,295\) of _virtual memory_ for that application. 
+
+It is important to understand the concept of _virtual memory_. The Operating System won’t be able to allocate 4GB in RAM for each application. First of all, because most computers won’t have enough memory to run more than 3 applications \(including the OS\) at the same time, but also because some data should be shared across all applications. 
+
+_Virtual memory_ is an abstraction of the physical memory \(RAM\) where the data is actually stored in non-consecutive areas. This is a huge advantage for applications so that they don’t have to take into consideration how to distribute the data across the RAM and keep track where is what. Instead, applications see one unique continuous block of memory and let the operating system deal with the translation to the actual location of the data in RAM.
 
 ![Virtual memory](.gitbook/assets/virtual_memory.png)
 
-Once the memory allocated, the OS \(actually the _dynamic linker_\) will map the binary application in memory according to its mapping table then load the libraries. Once done, the execution of the program starts at the _entry point_.
+Once the memory allocated, the OS \(actually the _dynamic linker_\) will map the binary application in memory according to its mapping table then load the libraries. Once done, the execution of the program starts at the _entry point_. Most of the program when loaded in moment do not need 4Go, therefore, all unmapped virtual memory do not take space in the actual RAM.
 
 {% hint style="info" %}
 We only kept the main steps relevant for this course. The process has been simplified and some steps are missing \[[6](https://stackoverflow.com/a/5130690)\].
 {% endhint %}
 
-The command `readelf` allows you to parse and extract information from the ELF file. The entry point of the application `ls` can be found with the following command:
+The command `readelf` allows you to parse and extract information from the ELF file. For instance, the entry point of the application `ls` can be found with the following command:
 
 ```text
 $ readelf --file-header /bin/ls
@@ -73,7 +79,7 @@ Key to Flags:
 
 In this example, once the dynamic linker has allocated the 4G of virtual memory, the section _.text_ of `/bin/ls` will be copied at the address `0x08049df0`.
 
-Memory location are addressed in bytes \(8 bits\). This means the address `0x00000000` is pointing to the first byte in memory, the address `0x00000001` is pointing to the second byte \(or 9th bit\) in memory, etc. Reading or writing from/to a speicifc memory location could means 1, 2 or 4 bytes depending on insturction, but the given address will be always pointing to one byte in memory.
+Memory location are addressed per bytes \(8 bits\). This means the address `0x00000000` is pointing to the first byte in memory, the address `0x00000001` is pointing to the second byte \(or 9th bit\) in memory, etc. Accessing data at a specific memory address could mean reading/writing 1, 2 or 4 bytes depending on instruction executed by the CPU, but the given address will be always pointing to one byte in memory.
 
 ## Memory layout
 
@@ -93,9 +99,9 @@ Those diagrams represent the layout for 32-bit Linux application. The main diffe
 
 ### Kernel and user-land
 
-Kernel is located between `0xC0000000` and `0xFFFFFFFF` in Linux operating system. This means the first two bits of kernel address always start with `11` \(`0xC0` = `11000000` and `0xFF` = `11111111`\). User-land is located between `0x00000000` and `0x0CFFFFFF`.
+Kernel is located between `0xC0000000` and `0xFFFFFFFF` in Linux operating system. This means the first two bits of kernel addresses always start with `11` \(`0xC0` = `11000000` and `0xFF` = `11111111`\). User-land is located between `0x00000000` and `0x0CFFFFFF`.
 
-Operating systems are responsible to manage privileges. For instance, as a normal user, you should not be able to access the files on the desktop of other users. But what if you create an application where the instructions tell the CPU to open and edit a file that you don’t have read/write permissions on it, how is the CPU supposed to know whether to execute the instruction or not?
+Operating systems are responsible to manage privileges. For instance, as a normal user, you should not be able to access the files on the desktop of another users. But what if you create an application where the instructions tell the CPU to open and edit a file that you don’t have read/write permissions on it, how is the CPU supposed to know whether to execute the instruction or not?
 
 All operations that requires privileges \(on the operating system level\) has to go through a **system call** such as [open](https://en.wikipedia.org/wiki/Open_%28system_call%29), [read](https://en.wikipedia.org/wiki/Read_%28system_call%29) or [write](https://en.wikipedia.org/wiki/Write_%28system_call%29). Whenever a **system call** is executed, a software interrupt/exception \(SWI\) is triggered, which redirect the execution flow to a routine that check the initial system call and its parameter and switch from user-land to kernel-land and start executing kernel instructions on behalf of user process \[[7](https://stackoverflow.com/a/11906590)\].
 
@@ -109,7 +115,7 @@ Of course, user-land instructions cannot read/write/edit instruction in kernel-l
 
 The stack is a region in memory where data is added or removed in a last-in-first-out \(LIFO\) manner. This area of memory is typically used to store:
 
-* Arguments of functions
+* The arguments sent to the functions
 * The return addresses
 * The stack base pointers
 * Local variables of functions
@@ -121,6 +127,7 @@ In order to have a better understanding of the stack, here is an example. Let’
 
 int add(int, int);
 int mul(int, int);
+
 
 int main()
 {
@@ -134,19 +141,6 @@ int main()
     printf("%d x %d = %d\n", four, three, result);
 
     return 0;
-}
-
-
-int add(int a, int b)
-{
-    int first, second, result;
-
-    first = a;
-    second = b;
-
-    result = first + second;
-
-    return result;
 }
 
 
@@ -167,6 +161,19 @@ int mul(int x, int y)
 
     return result;
 }
+
+
+int add(int a, int b)
+{
+    int first, second, result;
+
+    first = a;
+    second = b;
+
+    result = first + second;
+
+    return result;
+}
 ```
 
 {% hint style="info" %}
@@ -177,16 +184,16 @@ In this example, the function `main()` calls the function `mul()`, and the funct
 
 ![Function calls](.gitbook/assets/function_calls.png)
 
-Each function has its own stack frame. Whenever `main()` calls `mul()`, a new stack frame is added on top of the current one. A stack frame can grow and reduce with temporary local variables. A stack frame is usually structured as follow:
+Each function has its own _stack frame_. Whenever `main()` calls `mul()`, a new stack frame is added on top of the current one. A stack frame can grow and reduce with temporary local variables. A stack frame is usually structured as follow:
 
 * Function arguments: When a function is called, it generally receives arguments, e.g. in the call `mul(4,3)`, the first argument is `4` and the second argument is `3`. In this example, arguments are integers, but this could be any data \(float, string, etc\).
-* Return address: We will see it later in chapter assembly, but basically, whenever a function is called, the CPU jump to a different address in memory where the instruction of the called function is located. At the end of the function, the CPU needs to return at the instruction right after the initial call of the function. In order to know where to return, the address is saved in the stack.
+* Return address: We will see it later in chapter [assembly](assembly.md), but basically, whenever a function is called, the CPU jump to a different address in memory where the first instruction of the called function is located. At the end of the function, the CPU needs to return back to the instruction right after the initial call of the function. In order to know where to return, the address is saved in the stack.
 * Stack base pointer of the callee function: The base pointer point to the beginning of the stack frame. Oddly enough, the base pointer doesn’t point exactly at the beginning of the frame but rather the beginning of the local variable.
-* Local variables: When local variables are initialized, those are actually located in the stack. So for instance, if you have `int a;`, it allocated 4 bytes in the stack for the variable `a`.
+* Local variables: When local variables are initialized, those are actually located in the stack. So, for instance, if you have `int a;`, it allocated 4 bytes in the stack for the variable `a`.
 
 ![Stack frame](.gitbook/assets/stack.gif)
 
-We will see more examples with the stack in the chapter assembly.
+We will see more examples with the stack in the chapter [assembly](assembly.md).
 
 ### Heap
 
