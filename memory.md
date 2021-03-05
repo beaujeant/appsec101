@@ -11,7 +11,7 @@ So, memory is the place where the data is stored. As we’ve seen in the chapter
 
 ## ELF/PE file
 
-The translation between a code written in programming language, such as C, and machine instructions is done by a **compiler**. Once the code compiled, you get one \(or more\) _object\(s\)_. An _object_ on its own cannot do much; the operating system doesn’t know what to do with it. That’s why after compilation, the **linker** will put the objects together and generates a binary application packed in a specific file format so that whenever you run the file \(double-click on the icon or execute in a terminal\), the operating system knows how to load the program in memory and where to start \(first instruction\).
+The translation between a code written in a programming language, such as C, and machine instructions is done by a **compiler**. Once the code compiled, you get one \(or more\) _object\(s\)_. An _object_ on its own cannot do much; the operating system doesn’t know what to do with it. That’s why after compilation, the **linker** will put the objects together and generates a binary application packed in a specific file format so that whenever you run the file \(double-click on the icon or execute in a terminal\), the operating system knows how to load the program in memory and where to start \(first instruction\).
 
 The two most known application formats are **ELF** \(Executable and Linkable Format\) for _Linux_ application and **PE** \(Portable Executable\) for _Windows_ application. _ELF_ and _PE_ formats are different but still share common main features. The loading process of an application is quite similar from Windows to Linux, therefore, this course will stay generic and give an overview of the process in general.
 
@@ -35,13 +35,15 @@ Program can be compiled with static libraries or dynamic/shared libraries. Share
 
 Once you run an application, the operating system will first allocate some space in memory to load the application. Since we are working with a 32-bit computer, the program can only access addresses in memory that fit within 32 bits \(due to the design of the CPU \[[5](https://www.brianmadden.com/opinion/The-4GB-Windows-Memory-Limit-What-does-it-really-mean)\]\), which means between `00000000000000000000000000000000` \(0\) and `11111111111111111111111111111111` \(4,294,967,295\). So by default, whenever you run an application, the operating system allocate 4GB \(4,294,967,295\) of _virtual memory_ for that application. 
 
-It is important to understand the concept of _virtual memory_. The Operating System won’t be able to allocate 4GB in RAM for each application. First of all, because most computers won’t have enough memory to run more than 3 applications \(including the OS\) at the same time, but also because some data should be shared across all applications. 
+Here, we talk about virtual memory and not RAM. Of course, the Operating System wouldn't be able to allocate 4GB in RAM for each application as most computers wouldn’t have enough memory to run more than 3 applications \(including the OS\) at the same time. It is therefore important to understand the concept of _virtual memory_. 
 
-_Virtual memory_ is an abstraction of the physical memory \(RAM\) where the data is actually stored in non-consecutive areas. This is a huge advantage for applications so that they don’t have to take into consideration how to distribute the data across the RAM and keep track where is what. Instead, applications see one unique continuous block of memory and let the operating system deal with the translation to the actual location of the data in RAM.
+_Virtual memory_ is an abstraction of the physical memory \(RAM\), where the data is actually stored in non-consecutive areas. This is a huge advantage for applications so that they don’t have to take into consideration how to distribute the data across the RAM and keep track where is what. Instead, applications see one unique continuous block of memory and let the operating system deal with the translation to the actual location of the data in RAM.
 
 ![Virtual memory](.gitbook/assets/virtual_memory.png)
 
-Once the memory allocated, the OS \(actually the _dynamic linker_\) will map the binary application in memory according to its mapping table then load the libraries. Once done, the execution of the program starts at the _entry point_. Most of the program when loaded in moment do not need 4Go, therefore, all unmapped virtual memory do not take space in the actual RAM.
+Furthermore, the concept of virtual memory allows to have shares memory accross multiple applications. For instance, if we load the a library such as _libc_, which is used in most applications, the library is loaded once in RAM but used in several virtual memories. 
+
+Once the memory allocated, the OS \(actually the _dynamic linker_\) will map the binary application in memory according to its mapping table then load libraries. Once done, the execution of the program starts at the _entry point_. Most of the program when loaded do not need 4GB, therefore, all unmapped virtual memory do not take space in the actual RAM.
 
 {% hint style="info" %}
 We only kept the main steps relevant for this course. The process has been simplified and some steps are missing \[[6](https://stackoverflow.com/a/5130690)\].
@@ -77,9 +79,9 @@ Key to Flags:
   O (extra OS processing required) o (OS specific), p (processor specific)
 ```
 
-In this example, once the dynamic linker has allocated the 4G of virtual memory, the section _.text_ of `/bin/ls` will be copied at the address `0x08049df0`.
+In this example, once the dynamic linker has allocated the 4GB of virtual memory, the section _.text_ of `/bin/ls` will be copied at the address `0x08049df0`.
 
-Memory location are addressed per bytes \(8 bits\). This means the address `0x00000000` is pointing to the first byte in memory, the address `0x00000001` is pointing to the second byte \(or 9th bit\) in memory, etc. Accessing data at a specific memory address could mean reading/writing 1, 2 or 4 bytes depending on instruction executed by the CPU, but the given address will be always pointing to one byte in memory.
+Memory location are addressed per bytes \(8 bits\). This means the address `0x00000000` is pointing to the first byte in memory, the address `0x00000001` is pointing to the second byte \(or 9th bit\) in memory, etc. Although an address is always pointing to a byte, we can access several bytes at a time \(1, 2 or 4 bytes\) depending on the instruction executed. For instance, whenever we use the instruction `mov eax, 0x11223344` \(see in chapter [assembly](assembly.md#mov-move-data)\),  we copy 4 bytes starting at the address 0x11223344 and we copy it in the register `eax`. This means the byte at 0x11223344, the byte at 0x112235, the byte at 0x112236 and the byte at 0x112237 are concatenated and saved in the register eax.
 
 ## Memory layout
 
@@ -105,7 +107,7 @@ Operating systems are responsible to manage privileges. For instance, as a norma
 
 All operations that requires privileges \(on the operating system level\) has to go through a **system call** such as [open](https://en.wikipedia.org/wiki/Open_%28system_call%29), [read](https://en.wikipedia.org/wiki/Read_%28system_call%29) or [write](https://en.wikipedia.org/wiki/Write_%28system_call%29). Whenever a **system call** is executed, a software interrupt/exception \(SWI\) is triggered, which redirect the execution flow to a routine that check the initial system call and its parameter and switch from user-land to kernel-land and start executing kernel instructions on behalf of user process \[[7](https://stackoverflow.com/a/11906590)\].
 
-Once in kernel-land, more instructions \(privileged instruction\) are available. The CPU verifies whether the instructions are run from kernel-land simply by checking whether the address of the instruction executed starts with `11`.
+Once in kernel-land, you have a larger set of instructions  available, such as accessing a file. The CPU verifies whether the instructions are run from kernel-land simply by checking whether the address of the instruction executed starts with `11`. Prior to accessing the file, the kernel will verify who executed the system call and if it has the right to access it.
 
 {% hint style="info" %}
 Of course, user-land instructions cannot read/write/edit instruction in kernel-land.
@@ -115,12 +117,12 @@ Of course, user-land instructions cannot read/write/edit instruction in kernel-l
 
 The stack is a region in memory where data is added or removed in a last-in-first-out \(LIFO\) manner. This area of memory is typically used to store:
 
-* The arguments sent to the functions
-* The return addresses
-* The stack base pointers
-* Local variables of functions
+* Arguments sent to functions;
+* Return addresses;
+* Stack base pointers; and
+* Local variables of functions.
 
-In order to have a better understanding of the stack, here is an example. Let’s consider the following C code:
+In order to have a better understanding of the stack, here is a code example. Let’s consider the following C code:
 
 ```c
 #include <stdio.h>
@@ -186,10 +188,10 @@ In this example, the function `main()` calls the function `mul()`, and the funct
 
 Each function has its own _stack frame_. Whenever `main()` calls `mul()`, a new stack frame is added on top of the current one. A stack frame can grow and reduce with temporary local variables. A stack frame is usually structured as follow:
 
-* Function arguments: When a function is called, it generally receives arguments, e.g. in the call `mul(4,3)`, the first argument is `4` and the second argument is `3`. In this example, arguments are integers, but this could be any data \(float, string, etc\).
-* Return address: We will see it later in chapter [assembly](assembly.md), but basically, whenever a function is called, the CPU jump to a different address in memory where the first instruction of the called function is located. At the end of the function, the CPU needs to return back to the instruction right after the initial call of the function. In order to know where to return, the address is saved in the stack.
-* Stack base pointer of the callee function: The base pointer point to the beginning of the stack frame. Oddly enough, the base pointer doesn’t point exactly at the beginning of the frame but rather the beginning of the local variable.
-* Local variables: When local variables are initialized, those are actually located in the stack. So, for instance, if you have `int a;`, it allocated 4 bytes in the stack for the variable `a`.
+1. Function arguments: When a function is called, it generally receives arguments, e.g. in the call `mul(4,3)`, the first argument is `4` and the second argument is `3`. In this example, arguments are integers, but this could be any data \(float, string, etc\).
+2. The return address: We will see it later in chapter [assembly](assembly.md), but basically, whenever a function is called, the CPU jump to a different address in memory where the first instruction of the called function is located. At the end of the function, the CPU needs to return back to the instruction right after the initial call of the function. In order to know where to return, the address is saved in the stack.
+3. The stack base pointer of the callee function: The _base pointer_ points to the beginning of the stack frame. Oddly enough, the base pointer doesn’t point exactly at the beginning of the frame but rather the beginning of the local variable.
+4. Local variables: When local variables are initialized, those are actually located in the stack. So, for instance, if you have `int a;`, it allocated 4 bytes in the stack for the integer variable `a` \(integer are 4 bytes\).
 
 ![Stack frame](.gitbook/assets/stack.gif)
 
