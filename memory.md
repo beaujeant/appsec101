@@ -81,11 +81,13 @@ Key to Flags:
 
 In this example, once the dynamic linker has allocated the 4GB of virtual memory, the section _.text_ of `/bin/ls` will be copied at the address `0x08049df0`.
 
-Memory location are addressed per bytes \(8 bits\). This means the address `0x00000000` is pointing to the first byte in memory, the address `0x00000001` is pointing to the second byte \(or 9th bit\) in memory, etc. Although an address is always pointing to a byte, we can access several bytes at a time \(1, 2 or 4 bytes\) depending on the instruction executed. For instance, whenever we use the instruction `mov eax, 0x11223344` \(see in chapter [assembly](assembly.md#mov-move-data)\),  we copy 4 bytes starting at the address 0x11223344 and we copy it in the register `eax`. This means the byte at 0x11223344, the byte at 0x112235, the byte at 0x112236 and the byte at 0x112237 are concatenated and saved in the register eax.
+Memory location are addressed per bytes \(8 bits\). This means the address `0x00000000` is pointing to the first byte in memory, the address `0x00000001` is pointing to the second byte \(or 9th bit\) in memory, etc. Although an address is always pointing to a byte, we can access several bytes at a time \(1, 2 or 4 bytes\) depending on the instruction executed. For instance, whenever we use the instruction `mov eax, [0x11223344]` \(see in chapter [assembly](assembly.md#mov-move-data)\),  we copy 4 bytes starting at the address `0x11223344` and we copy it in the register `eax`. This means the byte at `0x11223344`, the byte at `0x112235`, the byte at `0x112236` and the byte at `0x112237` are concatenated and saved in the register `eax`.
 
 ## Memory layout
 
-Now that the program is running, we have the binary file as well as the libraries mapped in the virtual memory, but that’s not all. We also need memory space for local variables, dynamically allocated memory blocks, and OS related memory. All this is also in the virtual memory in specific areas.
+Now that the program is running, we have the binary file as well as the libraries mapped in the virtual memory, but that’s not all. We also need memory space for local variables, dynamically allocated memory blocks, and OS related memory. All this is also in the virtual memory in specific areas. 
+
+Below is a diagram that represent the main areas of the virtual memory.
 
 ![Linux memory layout](.gitbook/assets/linux_memory_layout.png)
 
@@ -93,7 +95,7 @@ In this diagram, the lowest memory \(smallest memory address\) is at the bottom 
 
 ![Linux memory layout inverted](.gitbook/assets/linux_memory_layout_inv.png)
 
-I personally prefer this representation \(lowest at the top\) because later when using _debuggers_, memory areas are usually represented in that order.
+I personally prefer this representation \(lowest at the top\) because later, when using _debuggers_, memory areas are usually represented in that order.
 
 {% hint style="info" %}
 Those diagrams represent the layout for 32-bit Linux application. The main difference with 32-bit Windows application is the repartition between kernel-land \(2GB\) and user-land \(2GB\).
@@ -101,11 +103,11 @@ Those diagrams represent the layout for 32-bit Linux application. The main diffe
 
 ### Kernel and user-land
 
-Kernel is located between `0xC0000000` and `0xFFFFFFFF` in Linux operating system. This means the first two bits of kernel addresses always start with `11` \(`0xC0` = `11000000` and `0xFF` = `11111111`\). User-land is located between `0x00000000` and `0x0CFFFFFF`.
+In Linux, the user-land is located between `0x00000000` and `0x0CFFFFFF`, while the kernel-land is located between `0xC0000000` and `0xFFFFFFFF`. This means the first two bits of kernel addresses always start with `11` \(`0xC0` = `11000000` and `0xFF` = `11111111`\). 
 
-Operating systems are responsible to manage privileges. For instance, as a normal user, you should not be able to access the files on the desktop of another users. But what if you create an application where the instructions tell the CPU to open and edit a file that you don’t have read/write permissions on it, how is the CPU supposed to know whether to execute the instruction or not?
+Operating systems are responsible — among many other things — to manage privileges. For instance, as a normal user, you should not be able to access the files on the desktop of another users. But what if you create an application where the instructions tell the CPU to open and edit a file that you don’t have read/write permissions on it, how is the CPU supposed to know whether to execute the instruction or not?
 
-All operations that requires privileges \(on the operating system level\) has to go through a **system call** such as [open](https://en.wikipedia.org/wiki/Open_%28system_call%29), [read](https://en.wikipedia.org/wiki/Read_%28system_call%29) or [write](https://en.wikipedia.org/wiki/Write_%28system_call%29). Whenever a **system call** is executed, a software interrupt/exception \(SWI\) is triggered, which redirect the execution flow to a routine that check the initial system call and its parameter and switch from user-land to kernel-land and start executing kernel instructions on behalf of user process \[[7](https://stackoverflow.com/a/11906590)\].
+All operations that requires privileges \(on the operating system level\) has to go through a **system call** such as [open](https://en.wikipedia.org/wiki/Open_%28system_call%29), [read](https://en.wikipedia.org/wiki/Read_%28system_call%29) or [write](https://en.wikipedia.org/wiki/Write_%28system_call%29). Whenever a **system call** is executed, a software interrupt/exception \(SWI\) is triggered, which redirect the execution flow to a routine that check the initial system call and its parameter and switch from user-land to kernel-land and start executing kernel instructions on behalf of the user process \[[7](https://stackoverflow.com/a/11906590)\].
 
 Once in kernel-land, you have a larger set of instructions  available, such as accessing a file. The CPU verifies whether the instructions are run from kernel-land simply by checking whether the address of the instruction executed starts with `11`. Prior to accessing the file, the kernel will verify who executed the system call and if it has the right to access it.
 
@@ -188,10 +190,10 @@ In this example, the function `main()` calls the function `mul()`, and the funct
 
 Each function has its own _stack frame_. Whenever `main()` calls `mul()`, a new stack frame is added on top of the current one. A stack frame can grow and reduce with temporary local variables. A stack frame is usually structured as follow:
 
-1. Function arguments: When a function is called, it generally receives arguments, e.g. in the call `mul(4,3)`, the first argument is `4` and the second argument is `3`. In this example, arguments are integers, but this could be any data \(float, string, etc\).
-2. The return address: We will see it later in chapter [assembly](assembly.md), but basically, whenever a function is called, the CPU jump to a different address in memory where the first instruction of the called function is located. At the end of the function, the CPU needs to return back to the instruction right after the initial call of the function. In order to know where to return, the address is saved in the stack.
-3. The stack base pointer of the callee function: The _base pointer_ points to the beginning of the stack frame. Oddly enough, the base pointer doesn’t point exactly at the beginning of the frame but rather the beginning of the local variable.
-4. Local variables: When local variables are initialized, those are actually located in the stack. So, for instance, if you have `int a;`, it allocated 4 bytes in the stack for the integer variable `a` \(integer are 4 bytes\).
+1. **Function arguments**: When a function is called, it generally receives arguments, e.g. in the call `mul(4,3)`, the first argument is `4` and the second argument is `3`. In this example, arguments are integers, but this could be any data \(float, string, etc\).
+2. **The return address**: We will see it later in chapter [assembly](assembly.md), but basically, whenever a function is called, the CPU jumps to a different address in memory where the first instruction of the called function is located. At the end of the function, the CPU needs to return back to the instruction right after the initial call of the function. In order to know where to return, the address is saved in the stack.
+3. **The stack base pointer of the callee function**: The _base pointer_ points to the beginning of the stack frame. Actually, to be precise, the base pointer doesn’t point exactly at the beginning of the frame but rather the beginning of the local variable.
+4. **Local variables**: When local variables are initialized, those are actually located in the stack. So, for instance, if you have `int a;`, it allocated 4 bytes in the stack for the integer variable `a` \(integer are 4 bytes\).
 
 ![Stack frame](.gitbook/assets/stack.gif)
 
@@ -199,7 +201,7 @@ We will see more examples with the stack in the chapter [assembly](assembly.md).
 
 ### Heap
 
-The heap is a region in memory where **dynamically allocated variables** are stored. Variables are areas in memory that are allocated to store their contents. There are three ways to allocate memory for a variable:
+Variables are areas in memory that are allocated to store their contents. There are three ways to allocate memory for a variable:
 
 * **Static memory allocation**: The memory is allocated whenever the program starts. It is a fixed address with a fixed size. Static allocations are used whenever variables are defined with `static`\(e.g. `static int a;`\).
 * **Automatic memory allocation**: The memory is allocated at the beginning of the stack frame whenever the function is called. The variable lasts as long as the function is running. Once the function is finished, the stack frame is clear and the memory is no longer allocated for the variable.
@@ -209,7 +211,7 @@ The heap is a region in memory where **dynamically allocated variables** are sto
 Automatic memory allocation doesn’t need to take place in the stack, but this is the most seen method.
 {% endhint %}
 
-Being able to dynamically allocated memory can be useful in many cases:
+The **heap** is a region in memory where **dynamically allocated variables** are stored. Being able to dynamically allocated memory can be useful in many cases:
 
 * When you don’t know how many variables you need. For instance, you created an application that allows you to create your family tree. The developer doesn’t know how many members you have in your family. Therefore, each time you add a new relative, the program will dynamically allocate memory to store the person’s data.
 * When you know the size of a variable only at runtime. For instance, if you want to store the biography for each member of your family and you don’t want to have a text length restriction, developers can use dynamically allocated memory to fit the biography.
@@ -218,20 +220,93 @@ Being able to dynamically allocated memory can be useful in many cases:
 
 Four functions are used to manage the memory in the heap:
 
-| Function | Return value | Arguments | Description |
-| :--- | :--- | :--- | :--- |
-| [`malloc`](http://www.cplusplus.com/reference/cstdlib/malloc/) | On success, a pointer to the memory block allocated by the function. The type of this pointer is always _void\*_, which can be cast to the desired type of data pointer in order to be dereferenceable. If the function failed to allocate the requested block of memory, a _null_ pointer is returned. | _size_: size of the new memory block to allocate in bytes. | Allocates a block of _size_ \(argument\) bytes of memory, returning a pointer to the beginning of the block. The content of the newly allocated block of memory is not initialized, remaining with indeterminate values. |
-| [`calloc`](http://www.cplusplus.com/reference/cstdlib/calloc/) | On success, a pointer to the memory block allocated by the function. The type of this pointer is always _void\*_, which can be cast to the desired type of data pointer in order to be dereferenceable. If the function failed to allocate the requested block of memory, a null pointer is returned. | _num_: Number of elements to allocate.  _size_: Size of each element. | Allocates a block of memory for an array of num elements, each of them size bytes long, and initializes all its bits to zero. The effective result is the allocation of a zero-initialized memory block of \(num\*size\) bytes. |
-| [`realloc`](http://www.cplusplus.com/reference/cstdlib/realloc/) | A pointer to the reallocated memory block, which may be either the same as _ptr_ \(argument\) or a new location. The type of this pointer is _void\*_, which can be cast to the desired type of data pointer in order to be dereferenceable. | _ptr_: Pointer to a memory block previously allocated with malloc, calloc or realloc.  _site_: New size for the memory block, in bytes. | Changes the size of the memory block pointed to by ptr. The function may move the memory block to a new location \(whose address is returned by the function\). The content of the memory block is preserved up to the lesser of the new and old sizes, even if the block is moved to a new location. If the new size is larger, the value of the newly allocated portion is indeterminate. In case that ptr is a null pointer, the function behaves like malloc, assigning a new block of size bytes and returning a pointer to its beginning. |
-| [`free`](http://www.cplusplus.com/reference/cstdlib/free/) | none | _ptr_: Pointer to a memory block previously allocated with malloc, calloc or realloc. | A block of memory previously allocated by a call to malloc, calloc or realloc is deallocated, making it available again for further allocations. Notice that this function does not change the value of ptr itself, hence it still points to the same \(now invalid\) location. |
+<table>
+  <thead>
+    <tr>
+      <th style="text-align:left">Function</th>
+      <th style="text-align:left">Return value</th>
+      <th style="text-align:left">Arguments</th>
+      <th style="text-align:left">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align:left"><a href="http://www.cplusplus.com/reference/cstdlib/malloc/"><code>malloc</code></a>
+      </td>
+      <td style="text-align:left">On success, a pointer to the memory block allocated by the function. The
+        type of this pointer is always <code>void*</code>, which can be cast to
+        the desired type of data pointer in order to be dereferenceable. If the
+        function failed to allocate the requested block of memory, a <code>null</code> pointer
+        is returned.</td>
+      <td style="text-align:left"><code>size</code>: size of the new memory block to allocate in bytes.</td>
+      <td
+      style="text-align:left">Allocates a block of <code>size</code> (argument) bytes of memory, returning
+        a pointer to the beginning of the block. The content of the newly allocated
+        block of memory is not initialized, remaining with indeterminate values.</td>
+    </tr>
+    <tr>
+      <td style="text-align:left"><a href="http://www.cplusplus.com/reference/cstdlib/calloc/"><code>calloc</code></a>
+      </td>
+      <td style="text-align:left">On success, a pointer to the memory block allocated by the function. The
+        type of this pointer is always <code>void*</code>, which can be cast to
+        the desired type of data pointer in order to be dereferenceable. If the
+        function failed to allocate the requested block of memory, a <code>null</code> pointer
+        is returned.</td>
+      <td style="text-align:left">
+        <p><code>num</code>: Number of elements to allocate.</p>
+        <p><code>size</code>: Size of each element.</p>
+      </td>
+      <td style="text-align:left">Allocates a block of memory for an array of <code>num</code> elements, each
+        of them <code>size</code> bytes long, and initializes all its bits to zero.
+        The effective result is the allocation of a zero-initialized memory block
+        of (<code>num</code>&#xD7;<code>size</code>) bytes.</td>
+    </tr>
+    <tr>
+      <td style="text-align:left"><a href="http://www.cplusplus.com/reference/cstdlib/realloc/"><code>realloc</code></a>
+      </td>
+      <td style="text-align:left">A pointer to the reallocated memory block, which may be either the same
+        as <code>ptr</code> (argument) or a new location. The type of this pointer
+        is <code>void*</code>, which can be cast to the desired type of data pointer
+        in order to be dereferenceable.</td>
+      <td style="text-align:left">
+        <p><code>ptr</code>: Pointer to a memory block previously allocated with
+          malloc, calloc or realloc.</p>
+        <p><code>site</code>: New size for the memory block, in bytes.</p>
+      </td>
+      <td style="text-align:left">Changes the size of the memory block pointed to by <code>ptr</code>. The
+        function may move the memory block to a new location (whose address is
+        returned by the function). The content of the memory block is preserved
+        up to the lesser of the new and old sizes, even if the block is moved to
+        a new location. If the new size is larger, the value of the newly allocated
+        portion is indeterminate. In case that <code>ptr</code> is a null pointer,
+        the function behaves like malloc, assigning a new block of size bytes and
+        returning a pointer to its beginning.</td>
+    </tr>
+    <tr>
+      <td style="text-align:left"><a href="http://www.cplusplus.com/reference/cstdlib/free/"><code>free</code></a>
+      </td>
+      <td style="text-align:left">none</td>
+      <td style="text-align:left"><code>ptr</code>: Pointer to a memory block previously allocated with
+        malloc, calloc or realloc.</td>
+      <td style="text-align:left">A block of memory previously allocated by a call to malloc, calloc or
+        realloc is deallocated, making it available again for further allocations.
+        Notice that this function does not change the value of <code>ptr</code> itself,
+        hence it still points to the same (now invalid) location.</td>
+    </tr>
+  </tbody>
+</table>
 
-Source: [malloc](http://www.cplusplus.com/reference/cstdlib/malloc/), [calloc](http://www.cplusplus.com/reference/cstdlib/calloc/), [realloc](http://www.cplusplus.com/reference/cstdlib/realloc/) and [free](http://www.cplusplus.com/reference/cstdlib/free/)
+Source: [malloc](http://www.cplusplus.com/reference/cstdlib/malloc/), [calloc](http://www.cplusplus.com/reference/cstdlib/calloc/), [realloc](http://www.cplusplus.com/reference/cstdlib/realloc/) and [free](http://www.cplusplus.com/reference/cstdlib/free/).
+
+Here is an example of dynamic memory allocation with malloc and free.
 
 ![Heap allocation](.gitbook/assets/heap.gif)
 
 ### Imported libraries
 
-Operating systems comes with libraries that contains a large list of native functions you can directly call, such as [`pow`](http://www.cplusplus.com/reference/cmath/pow/), [`printf`](http://www.cplusplus.com/reference/cstdio/printf/), [`scanf`](http://www.cplusplus.com/reference/cstdio/scanf/) or [`fopen`](http://www.cplusplus.com/reference/cstdio/fopen/). Built-in OS libraries are meant to facilitate the development of applications by providing functions doing basic/essential functionalities \(although sometimes complex to implement \[[10](http://www.equestionanswers.com/c/c-printf-scanf-working-principle.php)\]\) like reading user input from the terminal with `scanf`. Developers can also write their own library. Let say they created a function that can be re-used in other programs, they can compile/link the function in a separated file \(library\) and import that library in the program that uses functions from it.
+Operating systems comes with libraries that contains a large list of native functions you can directly call, such as [`pow`](http://www.cplusplus.com/reference/cmath/pow/), [`printf`](http://www.cplusplus.com/reference/cstdio/printf/), [`scanf`](http://www.cplusplus.com/reference/cstdio/scanf/) or [`fopen`](http://www.cplusplus.com/reference/cstdio/fopen/). Built-in OS libraries are meant to facilitate the development of applications by providing functions doing basic/essential functionalities \(although sometimes complex to implement \[[10](http://www.equestionanswers.com/c/c-printf-scanf-working-principle.php)\]\) like reading user input from the terminal with `scanf`. 
+
+Developers can also write their own library. Let say they created a function that can be re-used in other programs, they can compile/link the function in a separated file \(library\) and import that library in the program that uses functions from it.
 
 In Linux C, there are two types of libraries:
 
