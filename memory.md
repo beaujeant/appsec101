@@ -313,17 +313,15 @@ In Linux C, there are two types of libraries:
 * **Static libraries** \(.a\): The library is added directly in the final binary application when compiled/linked.
 * **Dynamically linked shared object libraries** \(.so\): The library is not added in the file but loaded at runtime.
 
-The main advantage of static libraries is that the final binary application should be able to run on its own. However, if you do any modification of the function in the library, you need to re-compile the application to apply the changes. While with the dynamically linked shared object libraries, you only need to edit the library and the changes will be effective next time the application is executed. However, if the library file is missing or corrupted, the application won’t work. Another benefit of shared libraries is that multiple application can use the same library while with static libraries, there is a copy of the library in each running application using it.
+The main advantage of static libraries is that the final binary application should be able to run on its own. However, if you do any modification of the function in the library, you need to re-compile the application to apply the changes. While with the dynamically linked shared object libraries, you only need to edit the library and the changes will be effective next time the application is executed. However, if the library file is missing or corrupted, the application won’t work.
 
-Although present in the virtual memory of each program using it, a shared library is present only once in the physical RAM. The library is located at the exact same address in each virtual memory. The address depends on where it has been loaded the first time the library was used. The other application will load the library at the same address. This means the memory location of a shared address is not hardcoded in the binary as there is no way to predict where the memory will be loaded beforehand. Since the address of the library is unknown during compile/link time, how does the application find the location of imported functions?
+Although loaded in the virtual memory of each program using it, a shared library is present only once in the physical RAM. The library is located at the exact same address in each virtual memory. The address depends on where the library has been loaded the first time it was used and the other applications will load the library at the same address. This means the memory location of a shared address is not hardcoded in the binary as there is no way to predict where the memory will be loaded beforehand. 
 
-The function `printf` for instance is located in the shared library `/lib/i386-linux-gnu/libc.so.6`. 
+Since the address of the library is unknown during compile/link time, how does the application find the location of imported functions?
 
-{% hint style="info" %}
-By default, GCC always includes the shared library `libc`, so there is no need to specify it when compiling. 
-{% endhint %}
+To illustrate the process, let's have a look at the function `printf`. It is located in the shared library `/lib/i386-linux-gnu/libc.so.6`. 
 
-For instance, let’s consider the following code `hello.c`:
+Let’s consider the following code `hello.c`:
 
 {% tabs %}
 {% tab title="hello.c" %}
@@ -340,7 +338,11 @@ int main()
 {% endtab %}
 {% endtabs %}
 
-If we compile with `gcc`, then use the command `ldd` to print the shared object dependencies, we can see that the shared library `libc` has been linked:
+{% hint style="info" %}
+By default, GCC always includes the shared library `libc`, so there is no need to specify it when compiling.
+{% endhint %}
+
+Once compiled using `gcc`, we can use the command `ldd` to print the shared object dependencies. Here, we can see that the shared library `libc` has been linked:
 
 ```text
 $ gcc hello.c -o hello
@@ -368,7 +370,7 @@ However, the application `hello_static` will be much bigger since the library wi
 Unused functions won’t be added in the program
 {% endhint %}
 
-Now, let’s have a look at how the functions from a shared librarie are loaded. First of all, libraries have an _export table_. It’s a table that lists all exported functions \(e.g. `printf`\) and tells at which offset the function is located. To see the list of exported functions, you can use either `mn -D <libfile>`, `readelf -s <libfile>` or `objdump -T <libfile>`:
+Now, let’s have a look at how the functions from a shared library are loaded. First of all, libraries have an _export table_. It’s a table that lists all exported functions \(e.g. `printf`\) and tells at which offset the function is located. To see the list of exported functions, you can use `mn -D <libfile>`, `readelf -s <libfile>` or `objdump -T <libfile>`:
 
 ```text
 $ objdump -T /lib/i386-linux-gnu/libc.so.6
@@ -393,7 +395,7 @@ DYNAMIC SYMBOL TABLE:
 The list does not only contains exported functions but all exported symbols, which also includes exported variables.
 {% endhint %}
 
-The first line contains the offset where to find the function when loaded in memory. So this means the function `printf` is not located at an offset of `0x49670` in the file `libc.so.6`. Instead, `printf` will be located at an offset of `0x49670` starting from where `libc.so.6` is loaded in memory.
+The first column contains the offset where to find the function when loaded in memory. So this means the function `printf` is not located at an offset of `0x49670` in the file `libc.so.6`. Instead, `printf` will be located at an offset of `0x49670` starting from where `libc.so.6` is loaded in memory.
 
 While we can easily get the offset, the location of `libc.so.6` \(and shared library in general\) in memory is only known at runtime. This means the linker at compile time doesn’t know the exact address of `libc` and thus the address of `printf`. Instead, the linker redirects the `printf` call to the _dynamic linker runtime resolver_ \(i.e. `_dl_runtime_resolve`\) function. The resolver takes two arguments: \(1\) a pointer to a structure containing dynamic linkage information \(including the address of `libc` in memory\) and \(2\) an index in the relocation entry table `rel.plt`. The table can be listed with `readelf`:
 
@@ -438,9 +440,9 @@ The _.data_ and _.bss_ sections are read-write since the values of variables can
 
 The _.text_ section contains the translation of the source code in machine instructions. Those instructions are sent and executed by the CPU. Those instructions consist of moving data, redirect the execution flow and execute mathematical and logical operations. There is a quite large set of instructions \(around 1500 \[[14](https://fgiesen.wordpress.com/2016/08/25/how-many-x86-instructions-are-there/)\]\) available for the i386 architecture. Fortunately, the 20 most used instructions make 90% of an application, so if you learn those 20 instructions, you should be able to read most of the code.
 
-Unlike ARM instructions, the size in memory for a single i386 instruction can vary from 1 to 15 bytes \(although most instructions are between 1 and 5 bytes\). When reading machine instructions, we \(human\) usually don’t read directly what is stored in memory but rather its interpretation. For instance, the instruction `push 0x0`, which will basically push to the _stack_ the value `0x00000000`, is `64 00`in memory. So while we \(human\) could technically remember that the value `64 00` is the instruction `push 0x0`, we are better at remembering meaningful words, that’s why all machine instructions can be directly translated in **assembly** \(also known as **asm**\). So assembly is a human-readable language that represents machine instructions. More info about assembly in the chapter assembly.
+Unlike ARM instructions, the size in memory for a single i386 instruction can vary from 1 to 15 bytes \(although most instructions are between 1 and 5 bytes\). When reading machine instructions, we \(human\) usually don’t read directly what is stored in memory but rather its interpretation. For instance, the instruction `push 0x0`, which will basically push to the _stack_ the value `0x00000000`, is `64 00` in memory. So while we \(human\) could technically remember that the value `64 00` is the instruction `push 0x0`, we are better at remembering meaningful words, that’s why all machine instructions can be directly translated in **assembly** \(also known as **asm**\). So assembly is a human-readable language that represents machine instructions. More info about assembly in the chapter [assembly](assembly.md).
 
-Instructions are stored one after another in memory, although not necessarily in chronological execution since the execution flow can be redirected. There is not delimiter between instructions and we've seen earlier, instructions have variable length. This means the CPU knows where the next instruction solely based on the current one being executed. For instance, the CPU knows that if it reads the value `64`, this is a `push` instruction that takes only one argument \(operand\) that is one byte long, so the total instruction is 2-bytes long and therefore, the next instruction is located two bytes after the current one.
+Instructions are stored one after another in memory, although not necessarily in chronological execution since the execution flow can be redirected. There is not delimiter between instructions and we've seen earlier, instructions have variable length. This means the CPU knows where the next instruction starts solely based on the current one being executed. For instance, the CPU knows that if it reads the value `64`, this is a `push` instruction that takes only one argument \(operand\) that is one byte long, so the total instruction is 2-bytes long and therefore, the next instruction is located two bytes after the current one.
 
 ## Registers
 
@@ -449,32 +451,30 @@ Registers are small memory locations built into the CPU, which increase the read
 Most instructions executed by the CPU involve \(at least\) one register as operand. Besides the advantageous fast access to register, the design of the machine language does not allow memory-to-memory operations \[[16](https://www.quora.com/Why-can%E2%80%99t-two-operands-both-be-memory-operands-in-assembly-language)\]. So this means if we want to add two values, for instance...
 
 ```c
-int a = 13;
-int b = 37;
-int c;
+int first_integer = 13;
+int second_integer = 37;
+int sum;
 
-c = a + b;
+sum = first_integer  + second_integer ;
 ```
 
- ... we won't be able to tell the CPU:
+ ... we won't be able to tell the CPU ...
 
 {% hint style="danger" %}
-_add_ the value located at the address `0x11223344` with the value located at the address `0x44332211` and save the result in `0x12345678`
+_add_ the value located at`0x11223344` \(address of `first_integer`\) with the value located at `0x44332211` \(address of `second_integer`\) and save the result in `0x12345678` \(address of `sum`\).
 {% endhint %}
 
-Instead, we will tell the CPU:
+... instead, we will tell the CPU ...
 
 {% hint style="success" %}
-_move_ the value located at the address `0x11223344` in the register `EDX`, then _add_ the value located at the address `0x44332211`with the value in the register `EDX`
+_move_ the value located at `0x11223344` in the register `EDX`, then _add_ the value in`EDX` with the value located at the address `0x44332211`
 {% endhint %}
 
-The instruction _add_ always saves the result in the first operand \(i.e. memory location at `0x11223344`\), so we will have to tell the CPU:
+The instruction _add_ always saves the result in the first operand \(in this case, in the register `EDX`\), so we will have to tell the CPU:
 
 {% hint style="success" %}
-_move_ the content located at `0x11223344` and copy it at `0x12345678`
+_move_ the value of `EDX` in memory at the address`0x12345678`
 {% endhint %}
-
-We could also move both values in registers and execute the addition, but this would require one additional instruction.
 
 32-bit architectures have the following registers:
 
