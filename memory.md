@@ -476,7 +476,7 @@ The instruction _add_ always saves the result in the first operand \(in this cas
 _move_ the value of `EDX` in memory at the address`0x12345678`
 {% endhint %}
 
-Ina a 32-bit architectures, you typically have the following registers:
+32-bit architectures have the following registers:
 
 * 8 General-Purpose Registers \(GPR\)
 * 1 Instruction Pointer
@@ -491,8 +491,8 @@ The 8 GPRs are:
 * **C**​ounter register \(CX\): Primarily used in loops as a counter. Also used in shift/rotate instructions.
 * **D**​ata register \(DX\): Used in arithmetic operations and I/O operations.
 * **B**​ase register \(BX\): Used as a pointer to data.
-* **S**​tack **P**​ointer register \(SP\): Pointer to the top of the stack. This register is automatically updated with instructions such as `push` and  `pop`.
-* Stack **B**​ase **P**​ointer register \(BP\): Used to point to the base of the stack \(see sub-chapter [stack](memory.md#stack)\).
+* **S**​tack **P**​ointer register \(SP\): Pointer to the top of the stack. This register is automatically updated when the instructions `push` and `pop` are executed.
+* Stack **B**​ase **P**​ointer register \(BP\): Used to point to the base of the stack \(see sub-chapter _stack_\).
 * **S**​ource **I**​ndex register \(SI\): Used as a pointer to a source in string/stream operations.
 * **D**​estination **I**​ndex register \(DI\): Used as a pointer to a destination in string/stream operations.
 
@@ -500,13 +500,13 @@ The 8 GPRs are:
 The purpose of the first four registers \(`AX`, `CX`, `DX` and `BX`\) can be interchangeable. Even `SI` and `DI` can be used for a different purpose. These are guidelines, but if `BX` is used as a loop counter, the code will still work fine.
 {% endhint %}
 
-All registers can be accessed in 16-bit and 32-bit modes. In 16-bit mode, the register is identified by its two-letter abbreviation from the list above. In 32-bit mode, this two-letter abbreviation is prefixed with an `E` \(for extended\). For example, `EAX` is the 32-bit value of the accumulator register. It is also possible to address the first four registers \(`AX`, `CX`, `DX` and `BX`\) in 8-bit mode. The low half is identified by replacing the `X` with an `L`, while the high half uses an `H` instead. For example, `CL` points to the 8 least-significant bits \(LSB\) of the counter register \(`CX`\), whereas `CH` points to the 8 most-significant bits \(MSB\) of `CX`. \[[17](https://en.wikibooks.org/wiki/X86_Assembly/X86_Architecture#x86_Architecture)\].
+All registers can be accessed in 16-bit and 32-bit modes. In 16-bit mode, the register is identified by its two-letter abbreviation from the list above. In 32-bit mode, this two-letter abbreviation is prefixed with an `E` \(extended\). For example, `EAX` is the accumulator register as a 32-bit value. It is also possible to address the first four registers \(`AX`, `CX`, `DX` and `BX`\) in their size of 16-bit as two 8-bit halves. The least significant byte \(LSB\), or low half, is identified by replacing the `X` with an `L`. The most significant byte \(MSB\), or high half, uses an `H` instead. For example, `CL` is the least-significant bits \(LSB\) of the counter register \(`CX`\), whereas `CH` is its most-significant bits \(MSB\). \[[17](https://en.wikibooks.org/wiki/X86_Assembly/X86_Architecture#x86_Architecture)\].
 
 ![Global-Purpose Registers](.gitbook/assets/gpr.png)
 
 ### Instruction Pointer
 
-The **I**​nstruction **P**​ointer \(EIP\) register contains the address of the next instruction to be executed. The register EIP cannot be read directly through an instruction.
+The **I**​nstruction **P**​ointer \(EIP\) register contains the address of the next instruction to be executed \(unless the execution is redirected by the current instruction\). The register EIP cannot be read directly through an instruction.
 
 ### Flags Register
 
@@ -527,7 +527,7 @@ The most important flags relevant for this course are:
 * **T**​rap **F**​lag \(TF\): indicates whether the CPU is in single-step mode \(TF = `1`\) or not \(TF = `0`\). The single-step mode is used to debug applications. When set, the CPU will execute one instruction and then stop so that you can examine the memory and registers between each instruction. This flag is used by debugger tools such as GDB, which will be covered in the next chapter [lab](lab.md).
 * **O**​verflow **F**​lag \(OF\): indicate whether an arithmetic overflow has occurred in the last operation. An overflow happens when two operands are added and the sign bit \(most-significant bit\) is flipped. If the expected result is a signed integer, the next operation will see the result as a negative number. \[[18](https://en.wikipedia.org/wiki/Overflow_flag)\]
 
-Remember the _ALU_ in chapter [CPU](cpu.md)? Well, _CF_, _PF_, _ZF_, _SF_ and _OF_ are part of the _status output_.This means all decision taken by the CPU in a conditinal operation is based on those flags.
+Remember the _ALU_ in chapter [CPU](cpu.md)? Well, _CF_, _PF_, _ZF_, _SF_ and _OF_ are part of the _status output_.
 
 ## References
 

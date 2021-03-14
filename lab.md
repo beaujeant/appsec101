@@ -2,11 +2,11 @@
 
 In this course, we will do a little bit of _reversing_, _debugging_ and _compiling_.
 
-**Reversing**, short for **reverse engineering**, is the process of reading machine language instructions and making sense out of it. The process could result in the translation of instructions into a higher-level language \(usually pseudo-code\). To help us in this task, we will use the built-in command-line debugger **GDB** \(see below\). Many disassemblers are much better than GDB, such as [IDA](https://www.hex-rays.com/products/ida/support/download_freeware.shtml), however, for what we need from it, GDB will be sufficient.
+**Reversing**, short for **reverse engineering**, is the process of reading machine language instructions and making sense out of it. This process usually involve the usage of a **disassembler**, a tool that converts machine instructions to their corresponding assembly representation. In this course, we will use the built-in command-line disassembler/debugger **GDB** \(see below\). Many disassemblers are much better than GDB, such as [IDA](https://www.hex-rays.com/products/ida/support/download_freeware.shtml), however, for what we need from it in the exercices, GDB will be sufficient.
 
-In the context of this course, **Debugging** means analyzing the binary application while it is running thanks to a _debugger_. A _debugger_ allows you to set _breakpoints_ in the debugged running application. A _breakpoint_ can be set on one or several instructions. Once the instruction with the breakpoint is reached and is about to be processed by the CPU, the application will pause the program. While being paused, the analyst can read and edit instructions, the memory and _registers_ \(see more about registers in chapter [CPU](cpu.md)\). In this course, we will use **GDB** \(see below\).
+In the context of this course, **Debugging** means analysing the binary application while it is running thanks to a _debugger_. A _debugger_ allows you to set _breakpoints_ in the debugged running application. A _breakpoint_ can be set on one or several instructions. Once the instruction with the breakpoint is reached and is about to be processed by the CPU, the application will pause the program. While being paused, the analyst can read and edit instructions, the memory and _registers_ \(see more about registers in chapter [memory](memory.md#registers)\). In this course, we will use **GDB** \(see below\).
 
-**Compiling** is the process of transforming computer code written in one programming language \(the source language\) into another programming language \(the target language\). In the context of this course, this means transforming C code in a binary application format using machine language instructions. The compiler used in this course is **GCC**.
+**Compiling** is the process of transforming computer code written in one programming language \(the source language\) into another programming language \(the target language\). In the context of this course, this means transforming C code in a binary application format using machine language instructions \(i.e. compiling and linking\). The compiler used in this course is **GCC**.
 
 ## Operating System
 
@@ -33,7 +33,7 @@ In order to keep this course free, we recommend using [VirtualBox](https://www.v
 During the Ubuntu installation, make sure you select the right keyboard \(use “Detect keyboard layout”\). For the rest, you can choose whatever name, username, password, and language.
 {% endhint %}
 
-Once the VM deployed, you can remove all links from the launcher \(left panel\) and add “Terminal”. This will be the only tool you will need for this course. Now that you have your VM ready, the first thing to do is to update your Linux. Type the following command in Terminal:
+Once the VM deployed, you can remove all links from the launcher \(left panel\) and add “Terminal”. This will be the only tool you will need for this course. Now that you have your VM ready, the first thing to do is to update your Linux. For this, type the following command in youe Terminal:
 
 ```text
 sudo apt-get update
@@ -52,13 +52,11 @@ $ cat /proc/sys/kernel/ramdomize_va_space
 2
 ```
 
-You can use a text editor and change the content to `0` to disable ASLR, however, the value will be reset to `2` after the next boot. To change the configuration permantly, you can add the following line in the file `/etc/sysctl.conf`:
+You can use a text editor and change the content to `0` to disable ASLR, however, the value will be reset to `2` after the next boot. To change the configuration permanently, you can add the following line in the file `/etc/sysctl.conf`:
 
-{% code title="/etc/sysctl.conf" %}
 ```text
 kernel.randomize_va_space = 0
 ```
-{% endcode %}
 
 You will need sudo privileges to add that line:
 
@@ -78,7 +76,7 @@ For this course, we only need 2 tools: **GDB** and **GCC**. Both tools are alrea
 
 ### GCC
 
-Let’s compile our first C code for this course. Use your favorite text editor and create the following `mul.c` file:
+Let’s compile our first C code for this course. Use your favourite text editor and create the following `mul.c` file:
 
 {% code title="mul.c" %}
 ```c
@@ -157,29 +155,53 @@ $ ./mul
 ```
 
 {% hint style="info" %}
-We will see later in chapter buffer overflow how the stack protector works and make it more complicate the exploitation of buffer overflow.
+We will see later in chapter [buffer overflow](buffer-overflow.md) how the stack protector works and make it more complicate the exploitation of buffer overflow.
 {% endhint %}
 
-When exploiting the buffer overflow, we will inject in the stack the malicious code to execute. By default, the stack is non-executable \(also known as NX\), which means the CPU will not executed instructions located in the stack. In oder to disable this security feature, we will use the option `-z execstack` when compiling with GCC:
+When exploiting buffer overflows, we will inject in the stack malicious instructions. By default, the stack is non-executable \(also known as NX\), which means the CPU will not executed instructions located in the stack. In oder to disable this security feature, we will use the option `-z execstack` when compiling with GCC:
 
 ```text
 $ gcc mul.c -o mul -fno-stack-protector -z execstack
 $ ./mul
 ```
 
+By default, GCC will build a _symbol table_  \(.symtab\) in the final binary that contains the list of all functions name from in the application. This include `main`, `add` and `mul`, but also function not explicitly written by the developer that were added by the compiler such as `_start`.
+
+The symbol table is really useful when reversing an application as function usually give a short description of what the function does. Furthermore, it allows to use the function name as alias instead of memory address in the debugger.
+
+The symbol table can be listed using `readelf`:
+
+```text
+$ readelf -s ./mul
+
+Symbol table '.dynsym' contains 7 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     [...]
+
+Symbol table '.symtab' contains 65 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND
+     1: 0000000000000238     0 SECTION LOCAL  DEFAULT    1
+    [...]
+    46: 0000000000000695    38 FUNC    GLOBAL DEFAULT   14 add
+    [...]
+    59: 000000000000064a    75 FUNC    GLOBAL DEFAULT   14 main
+    60: 00000000000006bb    77 FUNC    GLOBAL DEFAULT   14 mul
+```
+
 ### GDB
 
-As mentioned earlier, `GDB` is a debugger. The main feature of a debugger is to set breakpoints and read memory areas and registers. Let’s debug our first application:
+As mentioned earlier, `GDB` is a disasembler and a debugger. The main feature of a debugger is to set breakpoints and read memory areas and registers. Let’s debug our first application:
 
 ```text
 $ gdb mul -q
 ```
 
 {% hint style="info" %}
-The option `-q` is avoid printing introducery and copyright message.
+The option `-q` is to avoid printing introducery and copyright message.
 {% endhint %}
 
-Now, we want to disassemble the `main()` function to look at the listing of instructions and decide where to set a breakpoint.
+Now, we want to disassemble the `main()` function to look at the listing of instructions and decide where to set a breakpoint. For this, we can use the command `disassemble`.
 
 ```text
 (gdb) disassemble main
@@ -213,6 +235,12 @@ Dump of assembler code for function main:
 End of assembler dump.
 ```
 
+When use with a single argument, the function surrounding that address is disassembled.
+
+{% hint style="info" %}
+Most of the time, you can use the command `help` to get more information about the usage of GDB. For instance, `help disassemble`.
+{% endhint %}
+
 If your resolution is not big enough, it is possible that `GDB` prints the following message:
 
 ```text
@@ -221,13 +249,13 @@ If your resolution is not big enough, it is possible that `GDB` prints the follo
 
 In this case, you simply need to type `ENTER` to see the rest of the disassembled code.
 
-As explained in the [CPU](cpu.md) and [memory](memory.md) chapters, machine code instructions are basically a group of binary values that signify a specific instruction for the CPU. E.g. `b8 00 00 00 00` means moving `0x00000000` in the register `EAX`. However, it is usually easier for humans to read pseudo-English rather than hexadecimal value, therefore disassembler translates the binary values \(opcodes\) in human-readable code. Here in this case, `b8 00 00 00 00` is translated as `mov $0x0, %eax` \(see instruction at the address `0x08048454`\). This representation is the AT&T syntax. However, it exists different ways to represent opcodes, the most known one being “Intel”. In Intel syntax, `b8 00 00 00 00` is translated as `mov eax, 0x0`. I think the Intel syntax is easier to read than AT&T, therefore this course will be using Intel syntax. To change the syntax in GDB, you can run the following command:
+As explained in the [CPU](cpu.md) and [memory](memory.md) chapters, machine code instructions are basically a group of binary values that signify a specific instruction for the CPU. E.g. `b8 00 00 00 00` means moving `0x00000000` in the register `EAX`. However, it is usually easier for humans to read pseudo-English rather than hexadecimal value, therefore disassembler translates the binary values \(machine code\) in human-readable code \(assembly\). Here in this case, `b8 00 00 00 00` is translated as `mov $0x0, %eax` \(see instruction at the address `0x08048454`\). This representation is using the AT&T syntax. However, it exists different ways to represent assembly code, the most known one being “Intel”. In Intel syntax, `b8 00 00 00 00` is translated as `mov eax, 0x0`. Personally, I think the Intel syntax is easier to read than AT&T, therefore this course will be using Intel syntax. To change the syntax in GDB, you can run the following command:
 
 ```text
 (gdb) set disassembly-flavor intel
 ```
 
-The disassembly will not look like this:
+The disassembly of `main` will now look like this:
 
 ```text
 (gdb) disassemble main
@@ -268,7 +296,7 @@ Now, let say you want to set a breakpoint at the `mov eax, 0x0` \(located at the
 Breakpoint 1 at 0x08048454
 ```
 
-In order to reach this instruction, you need to run the application:
+In order to reach this instruction, you need to `run` the application:
 
 ```text
 (gdb) run
@@ -278,7 +306,7 @@ Starting program: /home/lab/mul
 Breakpoint 1, 0x08048454 in main ()
 ```
 
-As you can see, at this stage, the application already did the multiplication and printed the result. Once the breakpoint reached, the application pauses. At this point, you can read \(and write\) memory, instructions and registers. To view the registers, you can run the command:
+As you can see, at this stage, the application already did the multiplication and printed the result. Once the breakpoint is reached, the application pauses. At this point, you can read \(and write\) memory, instructions and registers. To view the registers, you can run the command:
 
 ```text
 (gdb) info registers
@@ -300,7 +328,7 @@ fs             0x0    0
 gs             0x33    51
 ```
 
-To read memory locations, including instructions \(since instruction are located in memory\), you can use the command `x` \(for e\_\_X\_\_amine\). The command `x` has the following format:
+To read memory locations, including instructions \(since instruction are located in memory\), you can use the command `x` \(for e**X**amine\). The command `x` has the following format:
 
 ```text
 x/nfu addr
