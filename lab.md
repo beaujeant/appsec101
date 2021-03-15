@@ -2,11 +2,11 @@
 
 In this course, we will do a little bit of _reversing_, _debugging_ and _compiling_.
 
-**Reversing**, short for **reverse engineering**, is the process of reading machine language instructions and making sense out of it. This process usually involve the usage of a **disassembler**, a tool that converts machine instructions to their corresponding assembly representation. In this course, we will use the built-in command-line disassembler/debugger **GDB** \(see below\). Many disassemblers are much better than GDB, such as [IDA](https://www.hex-rays.com/products/ida/support/download_freeware.shtml), however, for what we need from it in the exercices, GDB will be sufficient.
+**Reversing**, short for **reverse engineering**, is the process of reading machine language instructions and making sense out of it. This process usually involve the usage of a **disassembler**, a tool that converts machine instructions to their corresponding assembly representation. Here, we will use the built-in command-line disassembler/debugger **GDB** \(see below\). Many disassemblers are much better than GDB, such as [IDA](https://www.hex-rays.com/products/ida/support/download_freeware.shtml), however, for what we need from it in the exercises, GDB will be sufficient.
 
-In the context of this course, **Debugging** means analysing the binary application while it is running thanks to a _debugger_. A _debugger_ allows you to set _breakpoints_ in the debugged running application. A _breakpoint_ can be set on one or several instructions. Once the instruction with the breakpoint is reached and is about to be processed by the CPU, the application will pause the program. While being paused, the analyst can read and edit instructions, the memory and _registers_ \(see more about registers in chapter [memory](memory.md#registers)\). In this course, we will use **GDB** \(see below\).
+In the context of this course, **debugging** means analysing the binary application while it is running thanks to a _debugger_. A _debugger_ allows you to set _breakpoints_ in the debugged running application. A _breakpoint_ can be set on one or several instructions. Once the instruction with the breakpoint is reached and is about to be executed by the CPU, the application will pause the program. While being paused, the analyst can read and edit instructions, the memory and _registers_ \(see more about registers in chapter [memory](memory.md#registers)\). In this course, we will use \(again\) **GDB**.
 
-**Compiling** is the process of transforming computer code written in one programming language \(the source language\) into another programming language \(the target language\). In the context of this course, this means transforming C code in a binary application format using machine language instructions \(i.e. compiling and linking\). The compiler used in this course is **GCC**.
+**Compiling** is the process of transforming computer code written in one programming language \(the source language\) into another programming language \(the target language\). Usually, once translated, the instructions are embeded in a ELF file \(or PE file on Windows\) to build a binary application thanks to the linker. However, for the sake of brievety, we will use the word compilling for the compilation and the linker. The compiler \(and linker\) used in this course is **GCC**.
 
 ## Operating System
 
@@ -30,10 +30,10 @@ In order to keep this course free, we recommend using [VirtualBox](https://www.v
 * 10 Gb Hard disk \(VDI - Dynamically allocated\)
 
 {% hint style="info" %}
-During the Ubuntu installation, make sure you select the right keyboard \(use “Detect keyboard layout”\). For the rest, you can choose whatever name, username, password, and language.
+During the Ubuntu installation, make sure you select the right keyboard \(useDetect keyboard layout”\). For the rest, you can choose whatever name, username, password, and language.
 {% endhint %}
 
-Once the VM deployed, you can remove all links from the launcher \(left panel\) and add “Terminal”. This will be the only tool you will need for this course. Now that you have your VM ready, the first thing to do is to update your Linux. For this, type the following command in youe Terminal:
+Once the VM deployed, you can remove all links from the launcher \(left panel\) and add “Terminal”. This will be the only tool you will need for this course. Now that you have your VM ready, the first thing to do is to update your Linux. For this, type the following command in your Terminal:
 
 ```text
 sudo apt-get update
@@ -72,7 +72,7 @@ $ sudo sysctl -p
 
 ## Tools
 
-For this course, we only need 2 tools: **GDB** and **GCC**. Both tools are already pre-installed in Ubuntu Desktop.
+For this course, we only need 2 tools: **GDB** \(disassembler and debugger\) and **GCC** \(compiler and linker\). Both tools are already pre-installed in Ubuntu Desktop.
 
 ### GCC
 
@@ -147,7 +147,7 @@ This will compile `mul.c` and create the binary application `mul`. Now, in order
 $ ./mul
 ```
 
-When compiling vulnerable source code for buffer overflow examples, we will also need to remove the **stack protector** \(also known as **canary**\) added by default with GCC. The stack protector is a mechanism that verify if some specific memory areas haven't been altered during execution. To disable the stack protector, we need to use `-fno-stack-protector` as argument with GCC:
+When compiling vulnerable source code for buffer overflow examples, we will also need to remove the **stack protector** \(also known as **canary**\), which is added by default with GCC. The stack protector is a mechanism that verify if some specific memory areas haven't been altered during execution. To disable the stack protector, we need to use `-fno-stack-protector` as argument with GCC:
 
 ```text
 $ gcc mul.c -o mul -fno-stack-protector
@@ -155,43 +155,41 @@ $ ./mul
 ```
 
 {% hint style="info" %}
-We will see later in chapter [buffer overflow](buffer-overflow.md) how the stack protector works and make it more complicate the exploitation of buffer overflow.
+We will see later in chapter [buffer overflow](buffer-overflow.md) how the stack protector works and how it makes it more complicate to exploit a buffer overflow.
 {% endhint %}
 
-When exploiting buffer overflows, we will inject in the stack malicious instructions. By default, the stack is non-executable \(also known as NX\), which means the CPU will not executed instructions located in the stack. In oder to disable this security feature, we will use the option `-z execstack` when compiling with GCC:
+When exploiting buffer overflows, we will inject in the stack malicious instructions. By default, the stack is non-executable \(also known as NX\), which means the CPU will not executed instructions located in the stack. In order to disable this security feature, we will use the option `-z execstack` when compiling with GCC:
 
 ```text
 $ gcc mul.c -o mul -fno-stack-protector -z execstack
 $ ./mul
 ```
 
-By default, GCC will build a _symbol table_  \(.symtab\) in the final binary that contains the list of all functions name from in the application. This include `main`, `add` and `mul`, but also function not explicitly written by the developer that were added by the compiler such as `_start`.
+By default, GCC will build a _symbol table_  \(.symtab\) in the final binary. The table contains the list of all functions name from in the application. This include `main`, `add` and `mul`, but also function not explicitly written by the developer that were added by the compiler such as `_start`.
 
-The symbol table is really useful when reversing an application as function usually give a short description of what the function does. Furthermore, it allows to use the function name as alias instead of memory address in the debugger.
+The symbol table is really useful when reversing an application as function name usually give a short description of what the function does. Furthermore, it allows us to use the function name as alias instead of memory address in the debugger.
 
 The symbol table can be listed using `readelf`:
 
 ```text
 $ readelf -s ./mul
 
-Symbol table '.dynsym' contains 7 entries:
-   Num:    Value          Size Type    Bind   Vis      Ndx Name
-     [...]
+[...]
 
-Symbol table '.symtab' contains 65 entries:
-   Num:    Value          Size Type    Bind   Vis      Ndx Name
-     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND
-     1: 0000000000000238     0 SECTION LOCAL  DEFAULT    1
+Symbol table '.symtab' contains 71 entries:
+   Num:    Value  Size Type    Bind   Vis      Ndx Name
+     0: 00000000     0 NOTYPE  LOCAL  DEFAULT  UND
+     1: 08048154     0 SECTION LOCAL  DEFAULT    1
     [...]
-    46: 0000000000000695    38 FUNC    GLOBAL DEFAULT   14 add
+    51: 08048461    34 FUNC    GLOBAL DEFAULT   14 add
     [...]
-    59: 000000000000064a    75 FUNC    GLOBAL DEFAULT   14 main
-    60: 00000000000006bb    77 FUNC    GLOBAL DEFAULT   14 mul
+    65: 0804840b    86 FUNC    GLOBAL DEFAULT   14 main
+    66: 08048483    68 FUNC    GLOBAL DEFAULT   14 mul
 ```
 
 ### GDB
 
-As mentioned earlier, `GDB` is a disasembler and a debugger. The main feature of a debugger is to set breakpoints and read memory areas and registers. Let’s debug our first application:
+As mentioned earlier, `GDB` is a dissembler and a debugger. The main feature of a debugger is to set breakpoints and read memory areas and registers. Let’s debug our first application:
 
 ```text
 $ gdb mul -q
@@ -235,21 +233,23 @@ Dump of assembler code for function main:
 End of assembler dump.
 ```
 
-When use with a single argument, the function surrounding that address is disassembled.
+When use with a single argument, GDB will disassemble the function surround the givent address \(or function name\).
 
 {% hint style="info" %}
 Most of the time, you can use the command `help` to get more information about the usage of GDB. For instance, `help disassemble`.
 {% endhint %}
 
-If your resolution is not big enough, it is possible that `GDB` prints the following message:
+If the resolution of your terminal is not big enough, it is possible that `GDB` prints the following message:
 
 ```text
 ---Type <return> to continue, or q <return> to quit---
 ```
 
-In this case, you simply need to type `ENTER` to see the rest of the disassembled code.
+In this case, you simply need to hit `ENTER` to see the rest of the disassembled code.
 
-As explained in the [CPU](cpu.md) and [memory](memory.md) chapters, machine code instructions are basically a group of binary values that signify a specific instruction for the CPU. E.g. `b8 00 00 00 00` means moving `0x00000000` in the register `EAX`. However, it is usually easier for humans to read pseudo-English rather than hexadecimal value, therefore disassembler translates the binary values \(machine code\) in human-readable code \(assembly\). Here in this case, `b8 00 00 00 00` is translated as `mov $0x0, %eax` \(see instruction at the address `0x08048454`\). This representation is using the AT&T syntax. However, it exists different ways to represent assembly code, the most known one being “Intel”. In Intel syntax, `b8 00 00 00 00` is translated as `mov eax, 0x0`. Personally, I think the Intel syntax is easier to read than AT&T, therefore this course will be using Intel syntax. To change the syntax in GDB, you can run the following command:
+As explained in the [CPU](cpu.md) and [memory](memory.md) chapters, machine code instructions are basically a group of binary values that signify a specific instruction for the CPU. E.g. `b8 00 00 00 00` means moving `0x00000000` in the register `EAX`. However, it is usually easier for humans to read pseudo-English rather than hexadecimal values, therefore, disassembler translates the binary values \(machine code\) in human-readable code \(assembly\). Here in this case, `b8 00 00 00 00` is translated as `mov $0x0, %eax` \(see instruction at the address `0x08048454`\). 
+
+This representation is using the AT&T syntax. However, it exists different ways to represent assembly code, the most known one being “Intel”. In Intel syntax, `b8 00 00 00 00` is translated as `mov eax, 0x0`. Personally, I think the Intel syntax is easier to read than AT&T, therefore this course will be using Intel syntax. To change the syntax in GDB, you can run the following command:
 
 ```text
 (gdb) set disassembly-flavor intel
@@ -296,7 +296,7 @@ Now, let say you want to set a breakpoint at the `mov eax, 0x0` \(located at the
 Breakpoint 1 at 0x08048454
 ```
 
-In order to reach this instruction, you need to `run` the application:
+Now that a breakpoint is set, we want to reach that instruction. For this, you can simply start the application with the command `run`:
 
 ```text
 (gdb) run
@@ -306,7 +306,7 @@ Starting program: /home/lab/mul
 Breakpoint 1, 0x08048454 in main ()
 ```
 
-As you can see, at this stage, the application already did the multiplication and printed the result. Once the breakpoint is reached, the application pauses. At this point, you can read \(and write\) memory, instructions and registers. To view the registers, you can run the command:
+As you can see, at this stage, the application already did the multiplication and printed the result. Once the breakpoint is reached, the application pauses. At this point, you can read \(or write\) memory, instructions and registers. To view the registers, you can run the command `info registers`:
 
 ```text
 (gdb) info registers
@@ -328,20 +328,24 @@ fs             0x0    0
 gs             0x33    51
 ```
 
-To read memory locations, including instructions \(since instruction are located in memory\), you can use the command `x` \(for e**X**amine\). The command `x` has the following format:
+{% hint style="info" %}
+Here again, you can use `help info` to know more about the the command `info` and its arguments.
+{% endhint %}
+
+To read the value stored at a memory address, including instructions \(since instruction are located in memory\), you can use the command `x` \(for e**X**amine\). The command `x` has the following format:
 
 ```text
 x/nfu addr
 ```
 
-* **n** _\(optional\)_ is the repeat count: the repeat count is a decimal integer; the default is 1. It specifies how much memory \(counting by units u\) to display. If a negative number is specified, memory is examined backward from addr.
-* **f** _\(optional\)_ is the display format: the display format is one of the formats used by print \(‘_x_’, ‘_d_’, ‘_u_’, ‘_o_’, ‘_t_’, ‘_a_’, ‘_c_’, ‘_f_’, ‘_s_’\), and in addition ‘_i_’ \(for machine instructions\). The default is ‘_x_’ \(hexadecimal\) initially. The default changes each time you use either x or print.
+* **n** _\(optional\)_ is the repeat count: the repeat count is a decimal integer; the default is 1. It specifies how much memory \(counting by units u\) to display. If a negative number is specified, memory is examined backward from `addr`.
+* **f** _\(optional\)_ is the display format: the display format is one of the formats used by `printf` \(`x`, `d`, `u`, `o`, `t`, `a`, `c`, `f`, `s`\), and in addition `i` \(for machine instructions\). The default is `x` \(hexadecimal\) initially. The default changes each time you use either `x` or `print`.
 * **u** _\(optional\)_ is the unit size:
-  * _b_: Bytes
-  * _h_: Halfwords \(two bytes\)
-  * _w_: Words \(four bytes\) \(default\)
-  * _g_: Giant words \(eight bytes\)
-* _addr_ is the starting display address: _addr_ is the address where you want GDB to begin displaying memory. The expression need not have a pointer value
+  * `b`: Bytes
+  * `h`: Halfwords \(two bytes\)
+  * `w`: Words \(four bytes\) \(default\)
+  * `g`: Giant words \(eight bytes\)
+* **addr** is the starting display address: `addr` is the address where you want GDB to begin displaying memory. The expression need not have a pointer value
 
 Source and more info here: [onlinedocs](https://sourceware.org/gdb/onlinedocs/gdb/Memory.html).
 
