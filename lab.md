@@ -289,7 +289,9 @@ Dump of assembler code for function main:
 End of assembler dump.
 ```
 
-Now, let say you want to set a breakpoint at the `mov eax, 0x0` \(located at the address `0x08048454`\), you simply need to enter the following command:
+The listing is structured in three columns, the first one is the address where the instructions are located in the virtual memory, the second contains the instruction and the third on contains the operands. Here we can see that the function `mul` is called at the address `0x08048433`. If it's not clear yet we will see more in details assembly the `disassemble` command in chapter [assembly](assembly.md).
+
+Now, let say you want to set a breakpoint at the `mov eax, 0x0` located at the address `0x08048454`, you simply need to enter the following command:
 
 ```text
 (gdb) break *0x08048454
@@ -349,7 +351,7 @@ x/nfu addr
 
 Source and more info here: [onlinedocs](https://sourceware.org/gdb/onlinedocs/gdb/Memory.html).
 
-We now have reached the breakpoint located at `0x8048454`. So if we use the command `x/i 0x8048454`, we should see the instruction `mov eax, 0x0`:
+Here are a few examples to better understand. We now have reached the breakpoint located at `0x8048454`. So if we use the command `x/i 0x8048454`, we should see the instruction `mov eax, 0x0`:
 
 ```text
 (gdb) x/i 0x8048454
@@ -364,7 +366,13 @@ Now, if we want to see the opcode instead of the instruction, we have to change 
 ```
 
 {% hint style="info" %}
-Unlike ARM, x386 instruction length is variable, so we first need to read the first byte to know how long will be the instruction in opcode. For instance, `0xb8` means “move the next 4 bytes \(word\) in EAX”. So the entire instruction is 1 byte \(`0xb8`\) + 4 bytes \(value to copy in EAX\) = 5 bytes. Whilst `0x89` means moving the value of a register into another register. The following byte will indicate which is the source register and the destination register. For instance `0xc8` indicates that the source is ECX and destination is EAX”. If we put the pieces together, `89 c8` means `mov eax, ecx`. So the entire instruction is 1 byte \(`0x89`\) + 1 byte \(source/destination register\) = 2 bytes.
+Unlike ARM, x386 instruction length is variable, so we first need to read the first byte to know how long the instruction in opcode will be. For instance, `0xb8` means “move the next 4 bytes \(word\) in EAX”. So the entire instruction is 1 byte \(`0xb8`\) + 4 bytes \(value to copy in EAX\) = 5 bytes. Whilst `0x89` means moving the value of a register into another register. The following byte will indicate which is the source register and the destination register. For instance `0xc8` indicates that the source is ECX and destination is EAX”. If we put the pieces together, `89 c8` means `mov eax, ecx`. So the entire instruction is 1 byte \(`0x89`\) + 1 byte \(source/destination register\) = 2 bytes.
+{% endhint %}
+
+It is also possible to give expressions as argument. For instance, instead of writting `x/i 0x8048454`, we could have used `x/i $eip`, EIP being the instruction pointer register. In this case, GDB will first evaluate the expression `$eip` \(i.e. it returns the content of the register EIP\), then execute the `x` command. We can also use arythmetic, like for instance listing the second instruction to be executed with `x/i $eip+5` or `x/i 0x8048454+5`.
+
+{% hint style="info" %}
+When not explicitly mentioned prepended with a `0x`, value are interpreted as decimal.
 {% endhint %}
 
 Now that we know how to read memory, let’s navigate through the instructions. The four most important commands to remember are `run`, `continue`, `nexti` and `stepi`:
@@ -390,10 +398,12 @@ Breakpoint 2, 0x08048433 in main ()
 ```
 
 {% hint style="info" %}
-Since the application was already running, you should have a warning asking you whether you really want to start from the beginning. You simply need to type y to confirm.
+Since the application was already running, you should have a warning asking you whether you really want to start from the beginning. You simply need to type `y` to confirm.
 {% endhint %}
 
-Now we reached the breakpoint at `call 0x8048461 <mul>`. If you want to, you can execute the command `disassemble main` again to see where we are. The `call` instruction will redirect the execution flow to the function `mul`. If you want the function to execute and go straight to the next instruction \(i.e. `add esp,0x10`\) you can use the command `nexti`. But if you want to follow the execution flow and jump in the function `mul`, you can use the command `stepi`. Let’s use the later:
+Now that we've reached the breakpoint at `call 0x8048461 <mul>`, you can execute the command `disassemble main` again to see where we are. 
+
+The `call` instruction will redirect the execution flow to the function `mul`. If you want to execute the function and go straight to the next instruction \(i.e. `add esp,0x10`\) you can use the command `nexti`. But if you want to follow the execution flow and jump in the function `mul`, you can use the command `stepi`. Let’s use the later:
 
 ```text
 (gdb) stepi
@@ -402,7 +412,7 @@ Now we reached the breakpoint at `call 0x8048461 <mul>`. If you want to, you can
 
 As you can see, we now are in the function `mul` located at `0x08048483`. The debugger executed one single instruction, then automatically paused the program without the need to set another breakpoint.
 
-Now let’s have a look at the next 4 instructions. Instead of retyping the address where are, you could use the register _EIP_, which is the instruction pointer \(see [memory](memory.md) chapter\):
+Now let’s have a look at the next 4 instructions. Instead of retyping the address where are, you could use the register EIP, which is the instruction pointer \(see [memory](memory.md) chapter\):
 
 ```text
 (gdb) x/4i $eip
