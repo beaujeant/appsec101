@@ -1,6 +1,6 @@
 # Programming
 
-[Learning C](https://www.learn-c.org/), or programming in general, is beyond the scope of this course. You are actually expected to understand C and the main concepts of programming to follow this course. This chapter is just a reminder and allows me to have reference to some concepts later in this course. The chapter [assembly](assembly.md) is meant to match this chapter so that you can see the transformation from C to assembly.
+[Learning C](https://www.learn-c.org/), or programming in general, is beyond the scope of this course. You are actually expected to understand C and the main concepts of programming to follow this course. This chapter is just a recap and allows me to have references to some concepts later in this course. The chapter [assembly](assembly.md) is meant to match this chapter so that you can see the transformation from C to assembly.
 
 ## Hello world!
 
@@ -24,13 +24,13 @@ $ gcc hello.c -o hello
 $ ./hello
 ```
 
-You should see in your terminal below `./hello` the text `Hello World`.
+You should see in your terminal below `./hello` the text `Hello World!`.
 
-Let’s analyze the source code now. The first line, i.e. `#include <stdio.h>`, tells `gcc` to copy the content of the file `stdio.h` and paste it in `hello.c` before it start compiling the code. `stdio.h` is a _header file_that _defines_ a few variables, macros and functions related to input/ouptut, such as `printf()`. _Defining_doesn’t mean that the source code for `printf()` is in `stdio.h`. Instead, we only have its _prototype_. We will see later in the sub-chapter [functions](programming.md#functions) what a prototype is.
+Let’s analyse the source code now. The first line, i.e. `#include <stdio.h>`, tells `gcc` to copy the content of the file `stdio.h` and paste it in `hello.c` before it start compiling the code. `stdio.h` is a _header file_that _defines_ a few variables, macros and functions related to input/ouptut, such as `printf()`. _Defining_ doesn’t mean that the source code for `printf()` is in `stdio.h`. Instead, we only have its _prototype_. We will see later in the sub-chapter [functions](programming.md#functions) what a prototype is.
 
-On the third line, we have `void main ()`, this basically declare the function `main`. This line tells that the function `main` doesn’t return any value \(`void`\) and take no arguments \(`()`\). The function is delimited with the curly bracket \(on line 4 and 6\).
+On the third line, we have `void main ()`, this basically declare the function `main`. This line tells that the function `main` doesn’t return any value \(`void`\) and take no arguments \(`()`\). The function is delimited with curly brackets \(on line 4 and 6\).
 
-The syntax in C is quite flexible, i.e. the tabulation is purely aesthetic \(unlike python\) and the curly bracket could also be located on the same line as the function declaration:
+The syntax in C is quite flexible, i.e. the tabulation is purely aesthetic \(unlike python\) and the curly brackets could also be located on the same line as the function declaration:
 
 ```c
 void main () {
@@ -53,7 +53,7 @@ void main ()
 }
 ```
 
-The `main` function is a bit special as it is called by the operating system whenever the program is run. If you remember in chapter [Memory](memory.md) - [ELF/PE file](memory.md#elf-pe-file), the PE file contains the address where to start once the application is loaded in memory known as the _entry point_. The _entry point_ contains the address of the function `_start`. Unless explicitly written otherwise in your code, the function `_start` is responsible for setting up some memories \(including the program arguments and the environment variables\) then calls `main`.
+The `main` function is a bit special as it is called by the operating system whenever the program is run. If you remember in chapter [Memory](memory.md) - [ELF/PE file](memory.md#elf-pe-file), the PE file contains the address where to start once the application is loaded in memory. This address is also known as the _entry point_. The _entry point_ contains the address of the function `_start`. Unless explicitly written otherwise in your code, the function `_start` is responsible for setting up some memories \(including the program arguments and the environment variables\) then calls `main`.
 
 This means simply writing a function in your code is not enough to execute it. This function needs to be called somewhere. Either directly in `main`, or in a function called in main \(or function called from a function called… in main\).
 
@@ -111,13 +111,13 @@ Before a variable is used, it has to be **declared**. The syntax for declaring a
 int number;
 ```
 
-You will find a list of the different types of variable in chapter [CPU](cpu.md). _Integer_ are declared with `int`, _float_with `float`, _characters_ with `char` and _boolean_ with `bool`.
+You will find a list of different types of variable in chapter [CPU](cpu.md). _Integers_ are declared with `int`, _floats_ with `float`, _characters_ with `char` and _booleans_ with `bool`.
 
 {% hint style="info" %}
 More types are available, but those are the most used.
 {% endhint %}
 
-There is a limited set of types available for variables. However, you are still able to define your own custom type with `struct`. Let say for instance you want to create a variable that stores time \(date + time\):
+There is a limited set of types available for variables. However, you are able to define your own custom type with `struct`. Let say for instance you want to create a variable that stores time \(date + time\):
 
 ```c
 struct Date
@@ -143,11 +143,11 @@ It is also possible to declare arrays of a specific type. In this case, we just 
 char string[11];
 ```
 
-Declaring a variable tells the compiler \(the tool responsible for the translation from C to machine instructions\) what type of data the variable is expected to handle. With this information, the compiler will do the following:
+Declaring a variable tells the compiler \(the tool responsible for the translation from C to machine instructions\) what type of data the variable is expected to handle. With this information, the compiler will be able to do the following:
 
 * Before compiling, it will verify in the code if the data stored in the variable corresponds to the type used when declared
 * When using arrays, it will know the right offset in memory between the elements
-* It will write instructions to allocate the appropriate amount of space in memory based on the type
+* It will write instructions to allocate the appropriate amount of bytes in memory based on the type
 * Select the right machine instructions based on the type
 
 ### Type verification
@@ -183,13 +183,13 @@ It automatically converted the float `3.2` into the integer \(`0x3`\) and copied
 
 ### Browsing array
 
-Declaring is also important for arrays. Elements in arrays are stored in memory one after the other. But each element takes a specific amount of space in memory depending on the type. For instance, let’s consider the following array of 10 integers:
+Declaring is also important for arrays. Elements in arrays are stored in memory one after the other. But each element takes a specific amount of bytes in memory depending on the type. For instance, let’s consider the following array of 10 integers:
 
 ```c
 int array[10];
 ```
 
-Let say the beginning of the array is located at the address `0xbfffef00`. The first element \(`array[0]`\) will be located at `0xbfffef00`, the second element \(`array[1]`\) will be located at `0xbfffef08` \(`0xbfffef00`+ size of _one_ integer\), the third element \(`array[2]`\) will be located at `0xbfffef10` \(`0xbfffef00` + _two_time the size of one integer\), etc. Now, let’s consider the following array of 10 characters:
+Let say the beginning of the array is located at the address `0xbfffef00`. The first element \(`array[0]`\) will be located at `0xbfffef00`, the second element \(`array[1]`\) will be located at `0xbfffef08` \(`0xbfffef00`+ size of _one_ integer\), the third element \(`array[2]`\) will be located at `0xbfffef10` \(`0xbfffef00` + _two_ time the size of one integer\), etc. Now, let’s consider the following array of 10 characters:
 
 ```c
 char string[10];
@@ -197,13 +197,13 @@ char string[10];
 
 This array is located at `0xbfffee00`. The first element \(`string[0]`\) will be located at `0xbfffee00`, the second element \(`string[1]`\) will be located at `0xbfffee01` \(`0xbfffee00` + size of _one_ character\), the third element \(`string[2]`\) will be located at `0xbfffee00` \(`0xbfffee02` + _two_ time the size of one character\), etc.
 
-So we can tell the address pointed by `string[2]` is the same as the address calculated from `string + (2 * sizeof(char))`:
+So we can tell the address pointed by `string[2]` is the same as the address calculated from `string` + `(2 * sizeof(char))`:
 
 * `string`: When the variable name of an array is used without `[ ]`, using the name gets you the address in memory of the variable \(first element in array\)
 * `sizeof()`: Gets the size of an object or type
 * `char`: Type with which the array has been declared
 
-So basically, the type in the declaration of an array is used to determine where the next element is located. In other words, it tells you how many bytes should be skipped to reach the next element.
+So basically, the type in the declaration of an array is used to determine where the next element is located in memory. In other words, it tells you how many bytes should be skipped to reach the next element.
 
 ### Allocating memory
 
@@ -241,7 +241,7 @@ string[2] = 'L';
 Single quotes \(`'`\) is interpreted in C as a single character, while double quotes \(`"`\) are interpreted as a `NULL` terminated string.
 {% endhint %}
 
-Assigning value on struct is slightly different. The two most common ways to set the variable is either by using `{}` with the value separated with a coma, or by using the sub-name separated with a `.`. Here is a mix of both:
+Assigning value on `struct` variables is slightly different. The two most common ways to set the variable is either by using `{}` with the value separated with a coma, or by using the sub-name separated with a `.`. Here is a mix of both:
 
 ```c
 struct Date today = { 2019, 1, 1, 0, 0, 0 };
@@ -257,7 +257,7 @@ Now that the variables are declared and set, we can start manipulating them.
 
 We mentioned at the beginning of this sub-chapter that variables are meant to be some sort of abstraction layer so that we don’t have to deal with memory addresses and offsets and instead we can use a meaningful name to store, move and process data. However, sometime, it could be interesting to actually know and manipulate the memory address of a variable. One reason will be explain later in sub-chapter [function arguments](programming.md#functions).
 
-In order to know the address in memory where the variable is stored, you can use the symbol `&` right in front of the variable name, e.g. `&number`. You can also create variables that are meant to store a memory address. Those variables are called _pointer_ and can be declared as follow: `<type> *<variable name>`. For instance, if we want to create a pointer `pointer` that will store an integer, we will have the following line:
+In order to know the address in memory where the variable is stored, you can use the symbol `&` right in front of the variable name, e.g. `&number`. You can also create variables that are meant to store a memory address. Those variables are called _pointer_ and can be declared as follow: `<type> *<variable name>`. For instance, if we want to create a pointer `pointer` that will store the address of an integer, we will have the following line:
 
 ```c
 int *pointer;
@@ -272,7 +272,7 @@ int *pointer;
 pointer = &a;
 ```
 
-Now, if we modify the variable `a`, the address will remain the same, but the stored content will change:
+Now, if we modify the variable `a`, the address will remain the same, but its value will change:
 
 ```c
 int a, b;
@@ -296,13 +296,13 @@ printf("%d", pointer); // Print address location of number in decimal format (sa
 printf("%d", *pointer); // Print "14"
 ```
 
-When using the pointer name only, we get the memory address stored in the pointer variable. Whenever we use the `*` in front of the mail, we get the value located at the memory address stored in the pointer variable.
+When using the pointer name alone, we get the memory address stored in the pointer variable. Whenever we use the `*` in front of the name, we get the value located at the memory address stored in the pointer variable.
 
 As you can see in our last example, whenever we did `b = a;`, we copied the content stored in the variable `a` and stored into the variable `b`. We did not copy the address. So, later, whenever the variable `a` is modified, `b` still has the old value.
 
 ## Math/Logic operations
 
-C language has native mathematic and logic operation available straight out of the box without using additional functions. Here are some examples with the operants `int a = 7;` and `int b = 10`, where the result is stored in `signed int res`.
+C language has native arithmetic and logic operation available straight out of the box without using additional functions. Below are some examples using the operants `int a = 7` and `int b = 10`, where the result is stored in `signed int res`.
 
 * **Addition**: `res = a + b; // res = 17`
 * **Subtraction**: `res = a - b; // res = -3`
@@ -340,9 +340,7 @@ else
 The `else` statement is not mandatory.
 {% endhint %}
 
-In this example, the condition is `pin_code == 1234`, which verifies whether the variable `pin_code`contains the integer value `1234`. If it is the case, it will execute whatever is in the `if`’s curly bracket, which means it will print the message “PIN correct!”. Otherwise, it will execute whatever is in the `else`’s curly brackets, and thus print “Wrong PIN!”.
-
-You can have more than one condition concatenated with the operator `&&` \(i.e. _AND_\) or `||` \(i.e. _OR_\). With `&&`, both condition must be true, while when using `||`, either or both must be true.
+In this example, the condition is `pin_code == 1234`, which verifies whether the variable `pin_code`contains the integer value `1234`. If it is the case, it will execute whatever is in the `if`’s curly brackets, which means it will print the message “PIN correct!”. Otherwise, it will execute whatever is in the `else`’s curly brackets, and thus print “Wrong PIN!”.
 
 The result of a condition is always seen as a boolean in the **if** statement. So the condition could simply be a single variable. If the variable is `0`, the condition will be seen as `false`, any other value will be seen as `true`. Conditions can also be a comparison as seen earlier:
 
@@ -362,6 +360,8 @@ if( ! (pin_code == 1234) )
 }
 ```
 
+You can have more than one condition concatenated with the operator `&&` \(i.e. _AND_\) or `||` \(i.e. _OR_\). With `&&`, both condition must be true, while when using `||`, either or both must be true.
+
 ## Loop
 
 You may want at some point to repeat multiple times a succession of instructions. Let say you want to initialize a big array with `0`. You could do the following:
@@ -377,7 +377,7 @@ table[99] = 0;
 table[100] = 0;
 ```
 
-In this example, you would have a long repetitive list of instructions. If you suddenly want to initialize the array with the value `2` instead of `0`, you would have to change 100 lines. Furthermore, what if you don’t know the size of the array and this depends on the user input? You wouldn’t be able to predict the size of the array and write the correct amount of line. Instead, you could use the `for`, the `while` or the `do-while` loop.  Loops take one or more conditions \(like `if/else`\). The condition dictates whether the loop should reiterate or not.
+In this example, you would have a long repetitive list of instructions. If you suddenly want to initialize the array with the value `2` instead of `0`, you would have to change 100 lines. Furthermore, what if you don’t know the size of the array and this depends on the user input? You wouldn’t be able to predict the size of the array and write the correct amount of lines. Instead, you could use the `for`, the `while` or the `do-while` loop.  Loops take one or more conditions \(like `if/else`\). The condition dictates whether the loop should reiterate or not.
 
 ```c
 int table[100];
@@ -390,7 +390,7 @@ while( i < 100 )
 }
 ```
 
-In line 1, we declare an array of 100 integers. In line two, we declare the integer `i`, which will be used later as a counter for the loop. In line 4, we have the beginning of the loop with the condition within the parentheses, then between line 5 and 8 \(the curly brackets\), we have the code to execute at each iteration. In line 6, we have the array initialized, where the counter is used as an index. Finally, in line 7, we have the counter incremented. Whenever the program reaches the end of the loop, it will check the condition and check whether it should go back at the beginning of it \(line 6\).
+In line 1, we declare an array of 100 integers. In line two, we declare the integer `i`, which will be used later as a counter for the loop. In line 4, we have the beginning of the loop with the condition within the parentheses, then between line 5 and 8 \(the curly brackets\), we have the code to execute at each iteration. In line 6, we have the element of the array initialized, where the counter is used as an index. Finally, in line 7, we have the counter incremented. Whenever the program reaches the end of the loop, it will check the condition and check whether it should go back at the beginning of it \(line 6\).
 
 The structure of a `for` loop allows you to condense a little bit the code that manages the loop variable \(in this case, the variable `i`\):
 
@@ -405,11 +405,11 @@ for( int i = 0; i < 100; i = i + 1)
 
 As you can see, the condition of the `for` loop is split into 3 parts \(separated with semi-colons\):
 
-* Declaration and assignment of the variable: `int i = 0`
+* Declaration and assignment of the counter: `int i = 0`
 * Condition to match in order to continue the loop: `i < 100`
-* The operation to execute at the end of the iteration \(usually in order to update the variable\): `i = i + 1`
+* The operation to execute at the end of the iteration \(usually in order to update the counter\): `i = i + 1`
 
-There is still one last loop variant, i.e. the `do while`. Basically, it works like the `while` loop except that the content of the loop is executed at least once, no matter if the condition is met or not.
+There is still one last loop variant: the `do while`. Basically, it works like the `while` loop except that the content of the loop is executed at least once, no matter if the condition is met or not.
 
 ```c
 int i = 0;
@@ -460,7 +460,7 @@ printf( "Lowest temperature: %d", lowest );
 highest = february_temperature[0];
 lowest = february_temperature[0];
 
-for ( day = 1; day < 31; day++ ) 
+for ( day = 1; day < 28; day++ ) 
 {
     if ( highest < february_temperature[day] )
         highest = february_temperature[day];

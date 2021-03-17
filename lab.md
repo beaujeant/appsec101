@@ -369,7 +369,7 @@ Now, if we want to see the opcode instead of the instruction, we have to change 
 Unlike ARM, x386 instruction length is variable, so we first need to read the first byte to know how long the instruction in opcode will be. For instance, `0xb8` means “move the next 4 bytes \(word\) in EAX”. So the entire instruction is 1 byte \(`0xb8`\) + 4 bytes \(value to copy in EAX\) = 5 bytes. Whilst `0x89` means moving the value of a register into another register. The following byte will indicate which is the source register and the destination register. For instance `0xc8` indicates that the source is ECX and destination is EAX”. If we put the pieces together, `89 c8` means `mov eax, ecx`. So the entire instruction is 1 byte \(`0x89`\) + 1 byte \(source/destination register\) = 2 bytes.
 {% endhint %}
 
-It is also possible to give expressions as argument. For instance, instead of writing `x/i 0x8048454`, we could have used `x/i $eip`, EIP being the instruction pointer register \(see [memory](memory.md) chapter\). In this case, GDB will first evaluate the expression `$eip` \(i.e. it returns the content of the register EIP\), then execute the `x` command. We can also use arithmetic operations, like for instance here if we want to print the second instruction to be executed with `x/i $eip+5` or `x/i 0x8048454+5`.
+It is also possible to give expressions as argument. For instance, instead of writting `x/i 0x8048454`, we could have used `x/i $eip`, EIP being the instruction pointer register. In this case, GDB will first evaluate the expression `$eip` \(i.e. it returns the content of the register EIP\), then execute the `x` command. We can also use arythmetic, like for instance listing the second instruction to be executed with `x/i $eip+5` or `x/i 0x8048454+5`.
 
 {% hint style="info" %}
 When not explicitly mentioned prepended with a `0x`, value are interpreted as decimal.
@@ -412,7 +412,7 @@ The `call` instruction will redirect the execution flow to the function `mul`. I
 
 As you can see, we now are in the function `mul` located at `0x08048483`. The debugger executed one single instruction, then automatically paused the program without the need to set another breakpoint.
 
-Now let’s have a look at the next 4 instructions. This time, instead of retyping the address, we can use the register EIP:
+Now let’s have a look at the next 4 instructions. Instead of retyping the address where are, you could use the register EIP, which is the instruction pointer \(see [memory](memory.md) chapter\):
 
 ```text
 (gdb) x/4i $eip
@@ -433,7 +433,7 @@ We can now use either `stepi` or `nexti` to execute the current instruction and 
 0x08048489 in mul ()
 ```
 
-Now, let’s go to the next breakpoint. For this, we can use the command `continue`, so that the debugger will continue the program and until it reaches a breakpoint \(unless the application closes for whatever reason\).
+Now, let’s go to the next breakpoint. For this, we can use the command `continue`, so that the debugger will continue the program and until it reaches a breakpoint or the application close.
 
 ```text
 (gdb) continue
@@ -442,7 +442,7 @@ Continuing.
 Breakpoint 3, 0x0804844c in main ()
 ```
 
-We now have reached the instruction `call 0x80482e0 <printf@plt>`. The function `printf` is a native function from `libc`, so we don’t want to debug/reverse that function, we know already what it does. So we just want to move to the instruction after the call. For this, we simply need to execute the command `nexti`:
+Now we have reached the instruction `call 0x80482e0 <printf@plt>`. The function `printf` is a native function from `libc`, so we don’t want to debug/reverse that function, we know already what it does. So we just want to move to the instruction after the call. For this, we simply need to execute the command `nexti`:
 
 ```text
 (gdb) nexti
@@ -452,15 +452,13 @@ We now have reached the instruction `call 0x80482e0 <printf@plt>`. The function 
 
 As you can see, `printf` has been executed and printed in the terminal `4 x 3 = 12`.
 
-Now, \(1\) let’s `continue` the execution until the last breakpoint at the instruction `mov eax,0x0`, then \(2\) print the registers to see the value of _EAX_ before modification, then \(3\) execute the instruction and \(4\) print again the registers so that we can see the new value of _EAX_:
+Now, let’s `continue` the execution until the last breakpoint at the instruction `mov eax,0x0`, then print the registers to see the value of _EAX_ before modification, then execute the instruction and print again the registers so that we can see the new value of _EAX_:
 
 ```text
-(gdb) #1
 (gdb) continue
 Continuing.
 
 Breakpoint 1, 0x08048454 in main ()
-(gdb) #2
 (gdb) info registers
 eax            0xb    11
 ecx            0x7ffffff5    2147483637
@@ -478,10 +476,8 @@ ds             0x7b    123
 es             0x7b    123
 fs             0x0    0
 gs             0x33    51
-(gdb) #3
 (gdb) nexti
 0x08048459 in main ()
-(gdb) #4
 (gdb) info registers
 eax            0x0    0
 ecx            0x7ffffff5    2147483637
@@ -500,8 +496,6 @@ es             0x7b    123
 fs             0x0    0
 gs             0x33    51
 ```
-
-As you can see, the register EAX contained the value `0xb` before the instruction `mov eax,0x0`, and after, it contained the value `0x0`.
 
 {% hint style="info" %}
 You can print a single register by using `print $reg`, for instance `print $eax`.
