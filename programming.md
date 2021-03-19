@@ -298,7 +298,7 @@ printf("%d", *pointer); // Print "14"
 
 When using the pointer name alone, we get the memory address stored in the pointer variable. Whenever we use the `*` in front of the name, we get the value located at the memory address stored in the pointer variable.
 
-As you can see in our last example, whenever we did `b = a;`, we copied the content stored in the variable `a` and stored into the variable `b`. We did not copy the address. So, later, whenever the variable `a` is modified, `b` still has the old value.
+As you can see in our last example, whenever we did `b = a;`, we copied the content stored in the variable `a` into the variable `b`. We did not copy the address. So, later, whenever the variable `a` is modified, `b` still has the old value.
 
 ## Math/Logic operations
 
