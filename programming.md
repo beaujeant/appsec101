@@ -362,6 +362,26 @@ if( ! (pin_code == 1234) )
 
 You can have more than one condition concatenated with the operator `&&` \(i.e. _AND_\) or `||` \(i.e. _OR_\). With `&&`, both condition must be true, while when using `||`, either or both must be true.
 
+{% tabs %}
+{% tab title="AND" %}
+```c
+if( (pin_code >  1233) && (pin_code <  1235)  )
+{
+    printf("PIN correct!");
+}
+```
+{% endtab %}
+
+{% tab title="OR" %}
+```c
+if( (pin_code <= 1233) || (pin_code >= 1235) )
+{
+    printf("Wrong PIN!");
+}
+```
+{% endtab %}
+{% endtabs %}
+
 ## Loop
 
 You may want at some point to repeat multiple times a succession of instructions. Let say you want to initialize a big array with `0`. You could do the following:
@@ -480,16 +500,20 @@ printf( "Lowest temperature: %d", lowest );
 
 In this example, we have a set of instructions that are meant to find the highest and lowest value in an array and print the result in the terminal. Instead of always re-writing the block of code, we could create a function that re-uses the instructions then whenever we want to execute those blocks of instructions, we simply need to call the function by its defined name.
 
-A function typically takes 0, one or more inputs, process data, then returns 0 or one output. A function is defined by its header, which contains the type of the returned value, the name of the function, then the list of expected arguments:
+A function typically takes 0, one or more variables \(or direct values\) as inputs. It processes data, sometimes call other functions, then it returns 0 or one variable \(or direct value\) as output. 
+
+A function is defined by its header, which contains the type of the returned value, the name of the function, then the list of expected arguments:
 
 ```c
-void get_highest_and_lowest_temperature( int month[], int size_of_array )
+void get_highest_and_lowest_temperature( int month[], int days_in_month )
 {
     // Body
 }
 ```
 
-Here, we can see our new function `get_highest_and_lowest_temperature` has been defined. The function doesn’t return any output and takes two arguments: one array of integer called `month` and one integer called `days_in_month`. Now that the function is defined, we can add the body, which contains the operations done by the function.
+Here, we can see our new function `get_highest_and_lowest_temperature` has been defined. The function doesn’t return any output \(`void`\) and takes two arguments: one array of integer called `month` and one integer called `days_in_month`. 
+
+Now that the function is defined, we can add the body, which contains the operations to be executed by the function.
 
 ```c
 void get_highest_and_lowest_temperature( int month[], int days_in_month )
@@ -511,7 +535,7 @@ void get_highest_and_lowest_temperature( int month[], int days_in_month )
 }
 ```
 
-Now, our function is ready to be used. We can call it as follow:
+Now, our function is ready to be used. We can call it in `main` like this:
 
 {% code title="func.c" %}
 ```c
@@ -561,7 +585,7 @@ Lowest temperature: 1
 
 ### Returned value
 
-As mentioned earlier, functions can also return one variable. Let’s consider the following example:
+As mentioned earlier, functions can also return one variable \(or direct value\). Let’s consider the following example:
 
 ```c
 int add( int a, int b )
@@ -602,8 +626,9 @@ Once compiled and executed, the program will simply print `Result: 12`.
 
 ### Function arguments
 
-Functions can take 0, one or multiple arguments. These are meant to send data from the callee \(the function calling another function\) to the called function. Unless explicitly declared outside all functions, a variable can be used only in the function where it has been declared. So this means the following won’t work:
+Functions can take 0, one or multiple arguments. These are meant to send data from the _caller_ \(the function calling another function\) to the _callee_ \(the function called by another function\). Unless explicitly declared outside all functions, a variable can be used only in the function where it has been declared. So this means the following won’t work:
 
+{% code title="add.c" %}
 ```c
 #include <stdio.h>
 
@@ -626,6 +651,9 @@ void main ()
     printf("b: %d ", b);
 }
 ```
+{% endcode %}
+
+First of all, you won't be able to compile this code as the variable `a` is not defined in the function `add`. But event if you could, the variable `a` will contain 5 before and after calling the function `add`.
 
 However, this would work:
 
