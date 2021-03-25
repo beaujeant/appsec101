@@ -642,20 +642,20 @@ void main ()
     int a = 5;
     int b = 7;
 
-    printf("a: %d ", a);
-    printf("b: %d ", b);
+    printf("a: %d \n", a);
+    printf("b: %d \n", b);
     
     add();
     
-    printf("a: %d ", a);
-    printf("b: %d ", b);
+    printf("a: %d \n", a);
+    printf("b: %d \n", b);
 }
 ```
 {% endcode %}
 
-First of all, you won't be able to compile this code as the variable `a` is not defined in the function `add`. But event if you could, the variable `a` will contain 5 before and after calling the function `add`.
+First of all, you won't be able to compile this code as the variable `a` is not defined in the function `add`. But event if you could, the variable `a` would contain 5 before and after calling the function `add`.
 
-However, this would work:
+If you want to use a variable that get updated and persist after the call of the function, you can do as follow:
 
 ```c
 #include <stdio.h>
@@ -670,13 +670,13 @@ int add()
 
 void main ()
 {
-    printf("A: %d ", A); // A: 5
-    printf("B: %d ", B); // B: 7
+    printf("A: %d \n", A); // A: 5
+    printf("B: %d \n", B); // B: 7
     
     add();
     
-    printf("A: %d ", A); // A: 12
-    printf("B: %d ", B); // B: 7 
+    printf("A: %d \n", A); // A: 12
+    printf("B: %d \n", B); // B: 7 
 }
 ```
 
@@ -684,7 +684,7 @@ void main ()
 Variables declared outside all functions are called _global_ variable.
 {% endhint %}
 
-Another interesting – and maybe counterintuitive behavior – is that whenever you send a variable as an argument, you actually send a copy of its content rather than the variable itself. This means if a function modifies the value of an argument, the change will take place only within that function:
+Although maybe counterintuitive, whenever you send a variable as an argument, you actually send a copy of its content rather than the variable itself. This means if a function modifies the value of an argument, the change will take place only within that function:
 
 {% code title="add-example.c" %}
 ```c
@@ -722,7 +722,11 @@ b: 7
 c: 12
 ```
 
-As you can see, although the variable `a` in the function `add` has changed, the variable `a` in `main`remains the same. This is because `a` from `add` only receive a copy of the value from `a` in main and both `a` variables only exist within the function where they have been declared. If we want the changes to impact a variable declared in a different function \(which is not a global variable\), we need to send a pointer to that variable. In this case, we don’t send a copy of the content, but the address in memory where the variable is located. In this case, when we change the content, since we directly edit the value located at the same memory location, the changes will remain even after the function returns.
+As you can see, although the variable `a` in the function `add` has been changed, the variable `a` in `main`remains the same. This is because `a` from `add` only receive a copy of the value from `a` in main and both `a` variables only exist within the function where they have been declared. 
+
+To be honest, using the same name \(i.e. `a`\) in `main` and `add` makes it a bit confusing. You could use a different name for the variable in the function `add`, it would be the same.
+
+If we want the alter a variable declared in a different function \(without using global variables\), we need to send a pointer to that variable. In this case, we don’t send a copy of the content, but the address in memory where the variable is located. In this case, when we change the content, since we directly edit the value located at the same memory location, the changes will remain even after the function returns.
 
 ### Prototype
 
