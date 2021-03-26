@@ -618,7 +618,7 @@ void main ()
 
     result = add(5, 7);
 
-    printf("Result: %d");
+    printf("Result: %d"); // Result: 12
 }
 ```
 
@@ -632,7 +632,7 @@ Functions can take 0, one or multiple arguments. These are meant to send data fr
 ```c
 #include <stdio.h>
 
-int add()
+void add()
 {
     a = a + b;
 }
@@ -663,7 +663,7 @@ If you want to use a variable that get updated and persist after the call of the
 int A = 5;
 int B = 7;
 
-int add()
+void add()
 {
     A = A + B;
 }
@@ -686,7 +686,6 @@ Variables declared outside all functions are called _global_ variable.
 
 Although maybe counterintuitive, whenever you send a variable as an argument, you actually send a copy of its content rather than the variable itself. This means if a function modifies the value of an argument, the change will take place only within that function:
 
-{% code title="add-example.c" %}
 ```c
 #include <stdio.h>
 
@@ -705,34 +704,44 @@ void main ()
 
     c = add( a, b );
 
-    printf( "a: %d \n", a );
-    printf( "b: %d \n", b );
-    printf( "c: %d \n", c );
+    printf( "a: %d \n", a ); // a: 5
+    printf( "b: %d \n", b ); // b: 7
+    printf( "c: %d \n", c ); // c: 12
 }
 ```
-{% endcode %}
 
-The function will output:
-
-```text
-$ gcc add-example.c -o add-example
-$ ./add-example
-a: 5
-b: 7
-c: 12
-```
-
-As you can see, although the variable `a` in the function `add` has been changed, the variable `a` in `main`remains the same. This is because `a` from `add` only receive a copy of the value from `a` in main and both `a` variables only exist within the function where they have been declared. 
-
-To be honest, using the same name \(i.e. `a`\) in `main` and `add` makes it a bit confusing. You could use a different name for the variable in the function `add`, it would be the same.
+As you can see, although the variable `a` in the function `add` has been changed, the variable `a` in `main`remains the same. This is because `a` from `add` only receive a copy of the value from `a` in main and both `a` variables only exist within the function where they have been declared. Using the the same variable name in both function doesn't makes it persistent and might actually be confusing. You could have used a different name for the variable in the function `add`, it would be the same.
 
 If we want the alter a variable declared in a different function \(without using global variables\), we need to send a pointer to that variable. In this case, we don’t send a copy of the content, but the address in memory where the variable is located. In this case, when we change the content, since we directly edit the value located at the same memory location, the changes will remain even after the function returns.
+
+```c
+#include <stdio.h>
+
+void add( int *a, int b )
+{
+    *a = *a + b;
+}
+
+void main ()
+{
+    int a = 5;
+    int b = 7;
+    
+    printf( "a: %d \n", a ); // a: 5
+    printf( "b: %d \n", b ); // b: 7
+
+    add( &a, b );
+
+    printf( "a: %d \n", a ); // a: 12
+    printf( "b: %d \n", b ); // b: 7
+}
+```
 
 ### Prototype
 
 If you remember well, we mentioned at the beginning of this chapter that the included file `stdio.h` at the beginning of the `Hello World!` program contains the prototype for the function `printf`. A function prototype declares the function name, its parameters, and its return type to the rest of the program. It is used to tell the compiler what argument\(s\) is expected and what type is returned. Since the code for `printf` is not located in the program source code, without the prototype, the compiler will not be able to determine whether `printf` is expecting a string as the first parameter, and therefore, it won’t be able to flag an error if the programmer used the function in a wrong way.
 
-Function prototypes are also used whenever a call to a function happen before \(in the code\) the function is declared. In this case, the prototype of the function can be placed at the beginning of the source code:
+Function prototypes are also used whenever a call to a function happen before the function is declared in the code. In this case, the prototype of the function should be placed at the beginning of the source code:
 
 ```c
 #include <stdio.h>
@@ -744,7 +753,7 @@ void main ()
     int c;
 
     c = add( 5, 7 );
-    printf( "c: %d", c );
+    printf( "c: %d", c ); // c: 12
 }
 
 int add( int a, int b )
@@ -757,13 +766,13 @@ int add( int a, int b )
 
 ## Program arguments
 
-Now that we have discussed the pointer and function prototype, we can talk about the program arguments. Whenever you want to run a program, you typically execute the following command:
+Now that we have discussed pointers and function prototypes, we can talk about program arguments. Whenever you want to run a program, you typically execute the following command:
 
 ```text
 $ ./program-name
 ```
 
-Sometimes the program can take arguments, like for instance the Linux command `cp` \(copy\) which accepts two arguments, the first one being the path to the file we want to copy and the second arguments being the path where we want to copy the file.
+Sometimes, the program can take arguments, like for instance the Linux command `cp` \(copy\) which accepts — at least — two arguments, the first one being the path to the file we want to copy and the second arguments being the path where we want to copy the file.
 
 ```text
 $ cp /path/to/source-file /path/to/destination-file
