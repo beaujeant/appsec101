@@ -772,7 +772,7 @@ Now that we have discussed pointers and function prototypes, we can talk about p
 $ ./program-name
 ```
 
-Sometimes, the program can take arguments, like for instance the Linux command `cp` \(copy\) which accepts — at least — two arguments, the first one being the path to the file we want to copy and the second arguments being the path where we want to copy the file.
+Sometimes, the program can take arguments, like for instance the Linux command `cp` \(copy\) which accepts — typically — two arguments, the first one being the path to the file we want to copy and the second arguments being the path where we want to copy the file.
 
 ```text
 $ cp /path/to/source-file /path/to/destination-file
@@ -791,7 +791,9 @@ The function `main` is usually expected to return an _exit status_ \(`0` if the 
 * `argc`: an integer which contains the number of arguments sent
 * `argv`: an array of `char` pointer which are the actual arguments sent
 
-We’ve seen earlier in chapter [CPU](cpu.md), strings are actually an array of `char` terminated with a NULL character \(`0x00`\). And as we’ve seen in this chapter, whenever we use the name of an array without brackets, this is actually a pointer to the first element of that array. Whenever we deal with a string, we usually send the pointer and not a single element of the array. So the argument `char *argv[]` can be considered as an array of strings, where `argv[0]` is the first argument, `argv[1]` the second, etc.
+We’ve seen earlier in chapter [CPU](cpu.md), strings are actually an array of `char` terminated with a NULL character \(`0x00`\). As we’ve seen in this chapter, whenever we use the name of an array without brackets, the variable is interpreted as a pointer to the first element of that array. Whenever we deal with a string, we usually send the pointer and not a single element of the array. 
+
+So the argument `char *argv[]` is an array that contains a list of address that point to all arguments \(string\) used when calling the application. Therefore, `argv[0]` is a string pointer to point to the first argument, `argv[1]` the second, etc.
 
 Here is an example to print all program arguments:
 
@@ -826,6 +828,12 @@ $ ./read-args hello world
 
 The following functions are all part of the default `libc.so` library and are common functions used in most programs. These functions are all somewhat related to the vulnerabilities we will cover in this course, so it is very important to understand what’s their purpose and how they work.
 
+If you don't want to go through all the functions for now, but want to learn them as we learn about vulnerabilities, here is a summary of functions that will be used per vulnerability:
+
+* [Buffer overflow](buffer-overflow.md): gets and strcpy
+* _Format string_: printf
+* _Use-after-free_: malloc and free
+
 ### printf
 
 We’ve already used this function earlier in some examples. We know it is meant to print text in the terminal \(standard output\), but let’s have a closer look at it.
@@ -836,7 +844,7 @@ Unlike most functions, `printf` can take an _unlimited_ amount of argument. It e
 printf("Hello World!"); // Hello World!
 ```
 
-Whenever you want to print a variable, within that text, you can add a _format specifier_ in the _format string_. The function `printf` will then replace the _format specifier_ with the corresponding value sent as an argument to the function. The _format specifier_ has the following structure: `%[flags][width][.precision][length]specifier`.
+Whenever you want to print a variable, within that text, you can add a _format specifier_ in the _format string_. The function `printf` will then replace the _format specifier_ with the corresponding value sent as an argument to the function using the corresponding format. The _format specifier_ has the following structure: `%[flags][width][.precision][length]specifier`.
 
 {% hint style="info" %}
 Options in brackets \(`[` `]`\) are optional.
