@@ -831,7 +831,7 @@ The following functions are all part of the default `libc.so` library and are co
 If you don't want to go through all the functions for now, but want to learn them as we learn about vulnerabilities, here is a summary of functions that will be used per vulnerability:
 
 * [Buffer overflow](buffer-overflow.md): gets and strcpy
-* _Format string_: printf
+* _Format string_: printf and sprintf
 * _Use-after-free_: malloc and free
 
 ### printf
