@@ -1,14 +1,14 @@
 # Assembly
 
-Assembly is a vast topic. We could spend hours, days, month and we still would have plenty to say about. Nevertheless, this is not a reverse engineering course and I’m myself not particularly fluent in assembly, so this course will cover the bare minimum to understand and exploit the vulnerabilities listed for this course, i.e. buffer overflow, format string, use after free and integer over/underflow.
+Assembly is a vast topic. We could spend hours, days, month and we would still have plenty to say about. Nevertheless, this is not a reverse engineering course and I’m myself not particularly fluent in assembly, so this course will cover the bare minimum to understand and exploit the vulnerabilities listed for this course, i.e. buffer overflow, format string, use after free and integer over/underflow.
 
-As seen in the [CPU](cpu.md) chapter, instructions are sent to the CPU in the form of binary values of one or multiple bytes. Each binary instruction correspond to one assembly instruction. It is therefore possible to translate binary instructions directly into assembly instructions and the other way round. There is a one-to-one relation between binary instructions sent to CPU and assembly instructions, which is not the case for the relation between C and binary instruction. For instance, this single code line `c = 4 + 2;` in C can be translated in several ways and it will be composed of more than one binary instruction \(CPU operation\).
+As seen in the [CPU](cpu.md) chapter, instructions are sent to the CPU in the form of binary values of one or multiple bytes. Each binary instruction correspond to one assembly instruction. It is therefore possible to translate binary instructions directly into assembly instructions and the other way round. There is a one-to-one relation between binary instructions sent to CPU and assembly instructions, which is not the case for the relation between C and binary instruction. For instance, this single line of code `c = 4 + 2;` in C can be translated in several ways and it will be composed of more than one binary instruction \(CPU operation\).
 
 {% hint style="info" %}
 The translation from binary instructions to its assembly representation is called _to disassemble_, while the other way, i.e. the translation from assembly instructions to their binary instructions is called _to assemble_.
 {% endhint %}
 
-Programs can be developed entirely in assembly. However, if you simply translate assembly instructions to their corresponding binary instructions, the final binary file won't be executable. For this, you need to build a [ELF file](memory.md#elf-pe-file), embed the translated instructions together with _initialized data_ and _global variables_, map the data, build the import table, etc. This is the role of the _compiler_ and _linker_ to do this, but this is another story. In this course we don't want to learn assembly to build application, instead, we want to learn how to read and understand compiled code, which is different a exercise and requires slightly different knowledge and skills in assembly.
+Programs can be developed entirely in assembly. However, if you simply translate assembly instructions to their corresponding binary instructions, the final binary file won't be executable. For this, you need to build an [ELF file](memory.md#elf-pe-file), embed the translated instructions together with _initialized data_ and _global variables_, map the data, build the import table, etc. This is the role of the _compiler_ and _linker_ to do this, but this is another story. In this course we don't want to learn assembly to build application, instead, we want to learn how to read and understand compiled code, which is a different exercise and requires slightly different knowledge and skills in assembly.
 
 An assembly instruction is represented with the following syntax:
 
@@ -16,7 +16,7 @@ An assembly instruction is represented with the following syntax:
 instruction [operands] [;comment]
 ```
 
-The fields in bracket are optional. Each instruction has to be on a different line. The white space between the fields are ignored, so you can have a single space, a tabulation, four spaces, it doesn't matter.
+Fields in bracket are optional. Each instruction has to be on a different line. The white space between the fields are ignored, so you can have a single space, a tabulation, four spaces, it doesn't matter.
 
 * `instruction` is the operation executed by the CPU. The x86 architecture CPU have a defined list of [supported instructions](https://en.wikipedia.org/wiki/X86_instruction_listings).
 * `operands` can be seen as the argument of the instruction. An instruction can have zero, one, two or three operands. Operands can be a register, a memory address or a constant number. Operands are separated by a single coma.
@@ -75,7 +75,7 @@ Here is how to read this first line of assembly:
 
 * `0x0804840b` is the address in memory where this binary instruction is located.
 * `<+0>` is the offset – in byte – from the beginning of the function `main`. Since we are at the first instruction of `main`, the offset is `0`. Note that on the second line, the offset is `4`, which means the first instruction takes 4 bytes in memory, while on the thrid line, the offset is `7`, which means the second instruction takes 3 bytes in memory \(`7`-`4`\).
-* `lea ecx,[esp+0x4]` is the assembly instruction. The assembly syntax start with the instruction followed by zero, one or two operands. Operands are seperated with a coma \(`,`\).
+* `lea ecx,[esp+0x4]` is the assembly instruction. 
 
 {% hint style="info" %}
 This course is using the intel syntax, which [differs](http://web.mit.edu/rhel-doc/3/rhel-as-en-3/i386-syntax.html) slightly from the AT&T syntax.
@@ -98,7 +98,7 @@ Breakpoint 1, 0x0804840b in main ()
 esp            0xbfffef4c    0xbfffef4c
 ```
 
-When the instruction is executed, the register `esp` contains the value `0xbfffef4c`. So after execution, `ecx` stores `0xbfffef50` \(`0xbfffef4c` + `0x04`\).
+When the instruction is executed, the register `esp` contains the value `0xbfffef4c`. So after execution, `ecx` should stores `0xbfffef50` \(`0xbfffef4c` + `0x04`\).
 
 Let's verify it:
 
@@ -113,17 +113,17 @@ ecx            0xbfffef50    -1073746096
 
 So, all went as expected. But why copying that value in `ecx`? What is even stored at `[esp+0x4]`?
 
-First of all, remember that the stack is "growing" **downward**, which means if you add new content to the stack, the stack pointer, which always point to the top of the stack, will **decrease** \(see chapter [memory](memory.md#stack)\). So `[esp+0x4]` is pointing to a variable inside the stack at an offset of 4 bytes from the top of it. As seen in chapter [Memory](memory.md) - [Stack](memory.md#stack), function arguments are \(usually\) pushed to the stack prior to call the function. When the function is called, the _return address_ is pushed to the stack \(right above the arguments\).
+First of all, remember that the stack is "growing" **downward**, which means if you add new content to the stack, the stack pointer, which always point to the top of the stack, will **decrease** \(see chapter [memory](memory.md#stack)\). So `[esp+0x4]` is pointing to a variable inside the stack at an offset of 4 bytes from the top of it. As seen in chapter [Memory](memory.md) - [Stack](memory.md#stack), function arguments are \(usually\) pushed to the stack prior to call the function. When the function is called, the _return address_ is automatically pushed to the stack \(right above the arguments\).
 
 At this point, when the CPU reached the first instruction from the function `main`, the stack looks like this:
 
 ![Stack at the beginning of the main function](.gitbook/assets/stack-main.gif)
 
 {% hint style="info" %}
-Note that the data is stored in little-endian, which means if the value `0xb7e21637` is stored at the address `0xbfffef4c`, it actually means `0x37` is stored at 0xbfffef4c, `0xef` is stored at `0xbfffef4d`, `0xff` is stored at `0xbfffef4e` and `0xbf` is stored at `0xbfffef4f`.
+Note that the data is stored in little-endian, which means if the value `0xb7e21637` is stored at the address `0xbfffef4c`, it actually means `0x37` is stored at `0xbfffef4c`, `0xef` is stored at `0xbfffef4d`, `0xff` is stored at `0xbfffef4e` and `0xbf` is stored at `0xbfffef4f`.
 {% endhint %}
 
-This means `[esp]` point to the _return address_ `0xb7e21637` and `[esp+0x4]` points to `argc`, the first argument of main. So, even if we don't use it in our C code, our compiled program has an instruction that saves the address where the first argument is located into the `ecx` register. I don't know why, but it doesn't matter for now, let's move to the next instruction.
+This means at the beginning og `main`, `[esp]` point to the _return address_ `0xb7e21637` and `[esp+0x4]` points to `argc`, the first argument of main. So, even if we don't use it in our C code, our compiled program has an instruction that saves a pointer to `argc` into the `ecx` register. I don't know why, but it doesn't matter for now, let's move to the next instruction.
 
 #### Line 2: and esp,0xfffffff0
 
@@ -156,24 +156,24 @@ Once the instruction executed, the stack looks like this:
 ![](.gitbook/assets/stack-and.png)
 
 {% hint style="info" %}
-AND operation on the `esp` register are often done at the beginning of the `main` function to re-align the stack address, i.e. be a mutliple of `0x10` \(16\) \[[1](https://stackoverflow.com/a/28475252)\]
+AND operation on the `esp` register are often done at the beginning of the `main` function to re-align the stack address, i.e. be a multiple of `0x10` \(16\) \[[1](https://stackoverflow.com/a/28475252)\]
 {% endhint %}
 
 #### Line 3: push DWORD PTR \[ecx-0x4\]
 
-The `push` instruction adds the operand value onto the top of the stack. `esp` is updated accordingly \(decrement by 4\). The operand is `DWORD PTR [ecx-0x4]`:
+The `push` instruction adds the operand value onto the top of the stack. `esp` is updated accordingly \(decrement by 4\). In this case, the operand is `DWORD PTR [ecx-0x4]`:
 
 * `ecx-0x4`: Takes the value stored in `ecx` and subtract `0x4` \(4 in decimal\).
 * `[` `]`: Consider the value calculated inside the bracket as a memory address and the `push` instruction is actually storing into the stack the value pointed by this address \(instead of the address itself\). 
 * `DWORD PTR`: Stands for **D**ouble **WORD** \(4 bytes\) **P**OIN**T**E**R**. This means the pointed data should be considered as a 4 bytes variable.
 
-`ecx` contains the memory address where `argc` is stored in the stack \(see [line 1](assembly.md#line-1-lea-ecx-esp-0-x4)\). Since addresses are 4-bytes long, subtracting four is basically looking at the variable stored before `argc`, which in this case is the _return address_ `0xb7e21637`. So, the `push` instruction will add to the stack a copy of the _return address_:
+`ecx` contains the memory address where `argc` is stored in the stack \(see [line 1](assembly.md#line-1-lea-ecx-esp-0-x4)\). Since addresses are 4-bytes long, subtracting four is basically looking at the variable stored on top of `argc`, which in this case is the _return address_ `0xb7e21637`. So, the `push` instruction will add to the stack a copy of the _return address_:
 
 ![](.gitbook/assets/stack-push-ret.png)
 
 #### Line 4: push ebp
 
-When used without bracket, the instruction `push` with a register as operand simply pushes \(add\) on top of the stack the value stored in the register and update `esp` accordingly \(decrement by 4\).
+When used without bracket, the instruction `push` with a register as operand simply pushes \(adds\) on top of the stack the value stored in the register and update `esp` accordingly \(decrement by 4\).
 
 {% hint style="info" %}
 Actually, it's more the other way round, `esp` is decremented by 4, then the value of `ebp` is copied to the memory location pointed by `esp`.
@@ -204,13 +204,13 @@ The registers `ebp` and `esp` are now both pointing to the top of the stack.
 
 #### Line 6: push ecx
 
-We've seen the `push` instruction twice already, so you should know what it does by now, i.e. it will pushes the content of the register `ecx` on the stack. If you remember, in [line 1](assembly.md#line-1-lea-ecx-esp-0-x4), `ecx` contains the stack address where the the first argument of main \(`argc`\) is saved.
+We've seen the `push` instruction twice already, so you should know what it does by now, i.e. it will pushes the content of the register `ecx` on top of the stack. If you remember, in [line 1](assembly.md#line-1-lea-ecx-esp-0-x4), `ecx` contains the stack address where the first argument of `main` \(`argc`\) is saved.
 
 ![main stack after line 6](.gitbook/assets/main-stack-1.png)
 
 #### Line 7: sub esp,0x4
 
-`sub` stands for _subtracting_. It takes the first operand and subtract the second one to it. The result is than saved in the first operand. This instruction could be basically interpreted as `esp = esp - 0x4`.
+`sub` stands for _subtracting_. It takes the first operand and subtracts the second one to it. The result is than saved in the first operand. This instruction could be basically interpreted as `esp = esp - 0x4`.
 
 ```text
 (gdb) info registers esp
@@ -229,7 +229,7 @@ Subtracting from `esp` is basically allocating memory in the stack for local var
 
 #### Line 8: sub esp,0xc
 
-Surprisingly enough, the next instruction also subtract a static number to `esp`. I don't why this is done over two instruction instead of, for instance, this single equivalent instruction: `sub esp, 0x10`.
+Surprisingly enough, the next instruction also subtract a static value to `esp`. I don't why this is done over two instruction instead of, for instance, this single equivalent instruction: `sub esp, 0x10`.
 
 ```text
 (gdb) info registers esp
@@ -244,7 +244,7 @@ esp            0xbfffef24    0xbfffef24
 
 #### Line 9: push 0x80484c0
 
-When `push` is used with a direct value instead of a register, the value itself is pushed to the stack. But what is `0x80484c0`? Why is it pushed to the stack? Let's have a look at the section mapping to see from which section this address belong to:
+When `push` is used with a direct value instead of a register, the value itself is pushed to the stack. But what is `0x80484c0`? Why is it pushed to the stack? Let's have a look at the section mapping to see from which section this address belongs to:
 
 ```text
 (gdb) maintenance info sections 
@@ -268,7 +268,7 @@ The address `0x80484c0` is part of the `.rodata` section, which contains read-on
 0x80484c0:    0x6c6c6548
 ```
 
-If you some experience with reversing, you should quickly noticed that each bytes of this 32 bits value are in the range between `0x20` and `0x7d`, which are all printable ASCII characters. So `0x80484c0` might actually be pointing to a ASCII string:
+If you have some experience with reversing, you should have quickly noticed that each byte of this 32 bits value are in the range between `0x20` and `0x7d`, which are all printable ASCII characters. So `0x80484c0` might actually be pointing to an ASCII string:
 
 ```text
 (gdb) x/s 0x80484c0
@@ -281,7 +281,7 @@ So `0x80484c0` is actually a pointer to the string "Hello World!" stored in the 
 
 #### Line 10: call 0x80482e0 printf@plt
 
-The `call` instruction redirects the execution flow by changing the instruction pointer \(`EIP`\) with the address mentioned as operand. Usually, this operand is an address to a function. However, before it does that, it `push` to the stack the address of the following instruction. This address saved in the stack so that later, whenever the function if done, the program knows where to return.
+The `call` instruction redirects the execution flow by changing the instruction pointer \(`EIP`\) with the address mentioned as operand. Usually, this operand is an address to a function. However, before it does that, it `push` to the stack the address of the following instruction, also known as the _return address_. This address is saved so that later, whenever the called function is done, the program knows where to return.
 
 {% hint style="info" %}
 The instruction is actually `call 0x80482e0`, but GDB ❤ is kind enough to let us know that `0x80482e0` is actually the address of `printf` in the `plt` table.
@@ -306,11 +306,19 @@ Let see the instruction `call` in action:
 0xbfffef1c:    0x08048429    0x080484c0    0xbfffefe4
 ```
 
-In lines 1-4, I print the current and the next two instructions. We can see that the instruction pointer is not pointing to the `call 0x80482e0`. In line 5-6, I print the first 3 words on top of the stack. As seen in the [previous instruction](assembly.md#line-9-push-0x-80484-c0), the last `push` to the stack was with the pointer to "Hello World!", i.e. `0x080484c0`. We then execute the `call` instruction in line 7 with the GDB command `stepi` and **not** `nexti` \(see the difference in chater [lab](lab.md#gdb)\). One the command executed, we can see in lines 9-12 that the instruction pointer is now pointer to `0x80482e0`, the first operand of the executed `call` instruction. Finally, we see in lines 13-14 that the address of the instruction located right \(i.e. `0x08048429`\) after the call instruction has been pushed to the stack.
+In lines 1-4, I print the next three instructions to be executed. We can see that the instruction pointer is now pointing to the `call 0x80482e0`. Note that the following instruction \(the _return address_\) is `0x08048429`.
+
+In line 5-6, I print the first 3 double words \(32-bits value\) on top of the stack. As seen in the [previous instruction](assembly.md#line-9-push-0x-80484-c0), the top of the stack contains a pointer to "Hello World!" \(i.e. `0x080484c0`\), which was added during the last `push` instruction. 
+
+We then execute the `call` instruction in line 7 with the GDB command `stepi` and **not** `nexti` \(see the difference in chapter [lab](lab.md#gdb)\). 
+
+Once the command executed, we can see in lines 9-12 that the instruction pointer is now pointing to `0x80482e0`, the operand of the executed `call` instruction. 
+
+Finally, we see in lines 13-14 that the _return address_ \(i.e. `0x08048429`\) has been pushed to the stack.
 
 ![Stack at the beginning of printf](.gitbook/assets/main-stack-5.png)
 
-Here, we will not follow the `printf@plt` execution flow, instead we will tell GDB to continue the execution until we get back to `main` function:
+Here, we will not follow the `printf@plt` execution flow, instead we will tell GDB to continue the execution until we get back in `main` function:
 
 ```text
 (gdb) finish
@@ -322,7 +330,7 @@ Run till exit from #0  0x080482e0 in printf@plt ()
    0x804842d <main+34>:    mov    ecx,DWORD PTR [ebp-0x4]
 ```
 
-We are now back in the `main` function, at the instruction located right after the `call 0x80482e0`.
+We are now back in the `main` function, at the instruction located right after the `call 0x80482e0`. The printf function took care of cleaning the stack and removing the return address from the stack. However, the arguments \(i.e. the string `Hello World!`\) is still present.
 
 ```text
 (gdb) x/3x $esp
@@ -333,7 +341,7 @@ We are now back in the `main` function, at the instruction located right after t
 
 #### Line 11: add esp,0x10
 
-As its name implies, the instruction `add` operates an addition with the first operand and the second operand. The result is then saved in the first operand.
+As its name implies, the instruction `add` executes an addition operation with the first operand and the second operand. The result is then saved in the first operand.
 
 ```text
 (gdb) info registers esp
@@ -345,7 +353,7 @@ esp            0xbfffef30    0xbfffef30
 ```
 
 {% hint style="info" %}
-Adding to `esp` is basically cleaning the stack and remove memory local variable\(s\) from the stack.
+Adding to `esp` is basically cleaning the stack and remove local variable\(s\) from the stack.
 {% endhint %}
 
 ![main stack after line 11](.gitbook/assets/main-stack-2.png)
@@ -365,15 +373,15 @@ eip            0x804842d    0x804842d <main+34>
 
 #### Line 13: mov ecx,DWORD PTR \[ebp-0x4\]
 
-We've seen it already, the mov instruction is copying the content of the second operand into the first operant. The first operand \(moving destination\) is pretty clear, i.e. the register `ecx`. However, the first operand \(moving source\) might need a few explanation:
+We've seen it already, the `mov` instruction is copying the content of the second operand into the first operand. The first operand \(destination\) is pretty clear, i.e. the register `ecx`. However, the second operand \(source\) might need a few explanations:
 
 * `ebp-0x4`: Takes the value stored in `ebp` and subtract `0x4` \(4 in decimal\).
 * `PTR [` `]`: Consider the value calculated inside the bracket as a memory address and the `mov` instruction is actually copying the value pointed by this address \(instead of the address itself\). 
-* `DWORD`: Stands for _D\_ouble \_WORD_ \(4 bytes\). This means the pointed data should be considered as a 4 bytes variable.
+* `DWORD`: Stands for **D**ouble **WORD** \(4 bytes\). This means the pointed data should be considered as a 4 bytes variable.
 
-The register `ebp` was set in [line 5](assembly.md#line-5-mov-ebp-esp) and is used as the base pointer of the stack frame for the function `main`. When accessing data with a **negative** offset to `ebp`, we usually try to access local variable of the function to which the stack frame belong to. While if we try to access data with **positive** offset to `ebp`, this will most likely by argument to the function to which the stack frame belong to.
+The register `ebp` was set in [line 5](assembly.md#line-5-mov-ebp-esp) and is used as the base pointer of the stack frame for the function `main`. When accessing data using a **negative** offset to `ebp`, we usually try to access local variable of the function to which the stack frame belongs to. While if we try to access data using a **positive** offset to `ebp`, this will most likely be an argument sent to the function to which the stack frame belongs to.
 
-So here, `ebp-0x4` is the address where the register `ecx` was saved earlier in [line 6](assembly.md#line-6-push-ecx). So basically, in line 6, we saved `ecx` in the stack, then we do something \(between line 7 and 13\) which might alter `ecx`, and later in line 14, we restore the initial value saved in line 6 back in `ecx`.
+So here, `ebp-0x4` is the address where the register `ecx` was saved earlier in [line 6](assembly.md#line-6-push-ecx). So basically, in [line 6](assembly.md#line-6-push-ecx), we saved `ecx` in the stack, then we executed a few instructions \(between [line 7](assembly.md#line-7-sub-esp-0-x4) and [13](assembly.md#line-13-mov-ecx-dword-ptr-ebp-0-x4)\), which might alter `ecx`, and later here in line 13, we restore the initial value saved in [line 6](assembly.md#line-6-push-ecx) back in `ecx`.
 
 ```text
 (gdb) info registers ecx
@@ -388,7 +396,7 @@ ecx            0xbfffef50    -1073746096
 
 #### Line 14: leave
 
-The instruction `leave` is meant to reset the stack as it was at the beginning of the function. For this, is copies the content of the base pointer \(`ebp`\) in the stack pointer \(`esp`\), which releases the stack space allocated to the stack frame \(e.g. local variables\), then it copies the the variable on top of the stack in the base pointer \(`ebp`\). It is basically the equivalent of the following instructions:
+The instruction `leave` is meant to reset the stack as it was at the beginning of the function. For this, it copies the content of the base pointer \(`ebp`\) in the stack pointer \(`esp`\), which releases the stack space allocated to the stack frame \(e.g. local variables\), then it copies the the variable on top of the stack in the base pointer \(`ebp`\). It is basically the equivalent of the following instructions:
 
 ```text
 mov esp, ebp
@@ -396,7 +404,7 @@ pop ebp
 ```
 
 {% hint style="info" %}
-We haven't seen the `pop` instruction yet. `pop` is kind of the opposite of `push`. It takes the 4-bytes value on top of the stack and stores it in the first operant. Then it updates the the stack pointer accordingly, i.e. subtract 4 from `esp`.
+We haven't seen the `pop` instruction yet. `pop` is kind of the opposite of `push`. It takes the 4-bytes value on top of the stack and stores it in the operand. Then it updates the stack pointer accordingly, i.e. subtract 4 from `esp`.
 {% endhint %}
 
 #### Line 15: lea esp,\[ecx-0x4\]
@@ -418,7 +426,7 @@ esp            0xbfffef4c    0xbfffef4c
 
 ![main stack after line 14](.gitbook/assets/main-stack-6.png)
 
-At this point of time, `ecx` is pointing to the first argument of the function `main`. The address just above \(i.e. -0x4\) is actually the _return address_ of the main's callee function, i.e. `__libc_stat_main`.
+At this point of time, `ecx` is pointing to the first argument of the function `main`. The address just above \(i.e. -0x4\) is actually the _return address_ in the main's callee function, i.e. `__libc_stat_main`.
 
 #### Line 16: ret
 
@@ -428,7 +436,7 @@ Finally, the last line: the instruction `ret`! That last instruction is the equi
 The instruction pointer `eip` cannot be used as operand. So we cannot use `lea`, `mov`, `pop`, `push` with that register. That's why we have special instructions meant to manipulate eip \(and thus the execution flow\), like `call`, `jmp` or `ret`.
 {% endhint %}
 
-Now you understand why the `call` instruction is pushing to the stack the address of the next instruction \(also known as **return address**\): so that at the end of the called function, `ret` can be used to come back where it was initially. But that means that before we execute `ret`, we need to clean the stack and make sure `esp` is pointing to that **return address** previously pushed by `call`.
+Now you understand why the `call` instruction is pushing to the stack the address of the next instruction: so that at the end of the called function, `ret` can be used to come back where it was initially. But that means that before we execute `ret`, we need to clean the stack and make sure `esp` is pointing to that **return address** previously pushed by `call`.
 
 ```text
 (gdb) x/3i $eip
@@ -447,13 +455,13 @@ Now you understand why the `call` instruction is pushing to the stack the addres
 0xbfffef50:    0x00000001    0xbfffefe4    0xbfffefec
 ```
 
-In the four first lines, we list the current and next instructions. The two instructions after `ret` are `xchg ax,ax`. The function is usually finished after ret, what follows in memory is usually another function or some filler between functions.
+In the four first lines, we list the next three instructions. The two instructions after `ret` are `xchg ax,ax`. The function is usually finished after ret, what follows in memory is usually another function or some filler between functions.
 
 {% hint style="info" %}
 The `xchg` instruction exchange the content of the two operands. Here in this case, exchanging the content of the register `ax` with the register `ax` does nothing. Sometime, the compiler/linker uses `chxg ax,ax`, instead of the`nop` instruction because it takes 2 bytes in memory \(i.e. 0x66 0x90\) and not one byte like the `nop` instruction, which makes it easier for the memory alignment \[[2](https://stackoverflow.com/a/2136065)\]. `xchg ax,ax` is often used as filler.
 {% endhint %}
 
-So the current instruction is `ret` and the top of the stack contains the value `0xb7e21637` as seen in lines 5-6. Once the instruction `ret` executed, the execution flow got redirected back in the function `__libc_stat_main` \[[3](http://refspecs.linuxbase.org/LSB_3.1.0/LSB-generic/LSB-generic/baselib---libc-start-main-.html)\] at the address `0xb7e21637`. And when we look at the stack in lines 13-14, the address has been popped out and the top of the stack is now pointing at the next variable.
+So the current instruction is `ret` and the top of the stack contains the value `0xb7e21637` as seen in lines 5-6. Once the instruction `ret` executed, the execution flow got redirected back in the function `__libc_stat_main` \[[3](http://refspecs.linuxbase.org/LSB_3.1.0/LSB-generic/LSB-generic/baselib---libc-start-main-.html)\] at the address `0xb7e21637`. And when we look at the stack in lines 13-14, the address has been popped out and the top of the stack is now pointing at `main`'s arguments..
 
 {% hint style="info" %}
 The function `__libc_stat_main` is the initialization routine that starts the `main` function.
@@ -463,20 +471,22 @@ And voila, this was was the assembly translation for the `main` function of _hel
 
 #### Wrap up
 
-Reading line by line assembly is rather easy. The main complexity lies in building a comprehensive understanding of what the function \(or pieces of function\) does: putting all the lines together to make sense out of it and understanding what the developer intended to it.
+Reading line by line assembly is rather easy. The main complexity lies in building a comprehensive understanding of what the function \(or pieces of function\) does: putting all lines together to make sense out of it and understanding what the developer intended to it.
 
-Most of lines we've seen doesn't make too much sense or seems useless. To be honest, the function `main` could have been simplified with the following 4-lines:
+Most of lines we've seen don't make too much sense or seems useless. To be honest, the function `main` could have been simplified with the following 4-lines:
 
 ```text
-push   0x80484c0
-call   0x80482e0
-add    esp, 0x4
-ret
+push   0x80484c0 ; pushing the address of "Hello World!
+call   0x80482e0 ; Calling printf
+add    esp, 0x4  ; Cleaning the stack
+ret              ; Return to __libc_stat_main
 ```
 
 But instead, we have all those noisy useless lines. Why? The main reason is optimisation, e.g. reduce compilation time, execution time, output size, etc. Compilers are incredibly complex and well written. So what seems to be stupid and/or useless lines are usually meant to be like that.
 
 Those extra lines are actually what you will struggle a lot when reversing applications. Through experience, you will learn to find naturally the appropriate depth of understanding in the assembly code, i.e. ignoring line\(s\) because considered as useless to understand \(in the context of your task\) or on the contrary taking it/them into consideration.
+
+Now let's have crash course in assembly!
 
 ## Comments
 
@@ -494,11 +504,11 @@ ret
 
 There are three main areas where variables are located. Static/Global variables are located in a fix memory location \(usually in the _.data_ or _BSS_ segment\), arguments and local variables of functions are located in the stack, and finally, dynamically allocated variables are located in the heap.
 
-Unlike in C, compiled code \(without debug information\) do not have alias for variables. If you want to read or manipulate a variable, you need to provide the address where the variable is located \(or an offset that points to that memory location\).
+Unlike in C, compiled code \(without debug information\) do not have aliases for variables. If you want to read or manipulate a variable, you need to provide the address where the variable is located \(or an offset that points to that memory location\).
 
 ### Type verification
 
-Variables in assembly don't really have a type. Address point to binary data. The way you want to manipulate that data is entirely up to you. You could for instance execute a multiplication operation between two characters from a string.
+Variables in assembly don't really have a type. Addresses point to binary data. The way you want to manipulate that data is entirely up to you. You could for instance execute a multiplication operation between two characters from a string.
 
 One thing the CPU needs to know though is on how many bytes the instruction operates: **BYTE**, **WORD** or **D**ouble **WORD**.
 
@@ -510,7 +520,7 @@ mov eax,DWORD PTR [esp] ; Copies the 32-bit value at the top of the stack in EAX
 
 ### Allocating memory
 
-Function variables are usually located in the stack. The size in memory depends on the type of the variable when declared in C. Whenever we enter a function, we usually have the _prolog_, which is preparing the stack frame, then we have the memory allocation, which basically subtract the total size of all function memory to the stack pointer.
+Function variables are usually located in the stack. The size in memory depends on the type of the variable when declared in C. Whenever we enter a function, we usually have the _prolog_, which is preparing the stack frame, then we have the memory allocation for local variables, which basically subtract the total size of all function variables to the stack pointer.
 
 {% code title="add.c" %}
 ```c
@@ -545,7 +555,7 @@ void add(int a, int b)
 ```
 {% endcode %}
 
-If we look at the function add, we have 3 integers and 1 char. Integers are 4 bytes long and sign are 1 byte longs. We should therefore have \(3 x 4\) + 1 = 13 bytes allocated at the beginning of the function.
+If we look at the function `add`, we have 3 integers and 1 char. Integers are 4 bytes long and char are 1 byte longs. We should therefore have \(3 x 4\) + 1 = 13 bytes allocated at the beginning of the function.
 
 ```text
 $ gcc add.c -o add
@@ -560,9 +570,9 @@ Dump of assembler code for function add:
    ...
 ```
 
-As you can see after the _prolog_, we subtract 0x18 to the the stack pointer... 0x18, not 0xd... why? The two main reasons why the allocated memory space doesn't match the total size of local variable\(s\) are:
+As you can see in the _prolog_, we subtract 0x18 to the the stack pointer... 0x18, not 0xd... why? The two main reasons why the allocated memory space doesn't match the total size of local variable\(s\) are:
 
-1. Sometimes, variable doesn't need to be stored in the stack and registers are sufficient. In this case we would see less memory allocated. But this could also be the other way round, during the translation from C to assembly, the compiler might notice that extra memory should be allocated for intermediate variables that was not needed to declare in C.
+1. Sometimes, variable doesn't need to be stored in the stack and registers are sufficient. In this case we would see less memory allocated. But this could also be the other way round, during the translation from C to assembly, the compiler might notice that extra memory should be allocated for intermediate variables that was not needed to declare in the C code.
 2. In order to keep the stack aligned, the compiler will allocate extra space in the stack so that stack pointer is a multiple of 16.
 
 In our case, the 0x18 bytes allocated instead of the 0xd bytes needed are most likely meant to keep the stack aligned:
@@ -584,9 +594,16 @@ esp            0xbfffef00    0xbfffef00
 
 As we can see, after the memory allocation, the stack is a multiple of 16.
 
-Once the memory allocated, local variables are usually first referenced as an offset to `esp` or `ebp`. Sometimes, instead of always using that offset, the direct memory address \(calculate based on the offset\) can be saved in a register and so that later, access to that variable is done via that register.
+Once the memory allocated, local variables are usually first referenced as an offset to `esp` or `ebp`. Sometimes, instead of always using that offset, the direct memory address \(which is still calculated based on the offset\) can be saved in a register temporary so that later, access to that variable is done via that register.
 
-The order of the variables in the stack doesn't necessary match the order when variables are declared in the C code. For instance, in our last program, the stack looked like this:
+The order of the variables in the stack doesn't necessary match the order when variables are declared in the C code. For instance, in _add.c_ program, we declare the variable in that order:
+
+1. `int x;`
+2. `int y;`
+3. `int sum;`
+4. `char sign;`
+
+But the stack looks like this:
 
 ![add stack](.gitbook/assets/stack-add.png)
 
@@ -635,11 +652,11 @@ So the main take away here, is that whenever you subtract something to `esp`, yo
 
 The main ways to assign a value to a variable \(i.e. copying data to a given memory address\) is by using the `mov` instruction. However, a variable is usually not manipulated directly in memory, its content is often first copied in a register where data can be processed \(e.g. arithmetic or logical operation\) in a faster way \(see chapter [memory](memory.md#registers)\).
 
-There are three other instructions meant for moving data: `lea` and `push` and `pop`. We've seen most of those instructions in the chapter [Hello World!](assembly.md#hello-world), but let's have a closer look at them.
+There are three other instructions meant for moving data: `lea`, `push` and `pop`. We've seen those instructions in the chapter [Hello World!](assembly.md#hello-world), but let's have a closer look at them.
 
 #### mov - move data
 
-The `mov` instruction copy the content referenced by the second operand and overwrite the content referenced by the first operand with it. Note that it is not possible to move data memory-to-memory. For instance, we cannot move the content located at `0x08001122` to the address `0x08221100` in one instruction. For this, we would need to first copy the content of `0x08001122` in a register, then copying the register to `0x08221100`. Here are some examples:
+The `mov` instruction copy the content referenced by the second operand and overwrite the content referenced by the first operand with it. Note that it is not possible to move data memory-to-memory. For instance, we cannot move the content located at `0x08001122` to the address `0x08221100` in one instruction. For this, we would first need to copy the content of `0x08001122` in a register, then copying the register to `0x08221100`. Here are some examples:
 
 ```text
 mov eax, ebx   ; Copy the content of ebx to eax
@@ -675,7 +692,7 @@ mov DWORD PTR [eax], 0x42 ; Copy 0x00000042 and overwrite four bytes starting fr
 
 #### lea - load effective address
 
-Like the `mov` instruction, `lea` copies data from the second operand to the first operand. The main difference with `mov` is that the second operand always uses bracket \(`[` `]`\), however here, `lea` doesn't copy the pointed value but the _effective address_, meaning the actual address calculated within bracket. Here are some examples:
+Like the `mov` instruction, `lea` copies data from the second operand to the first operand. The main difference with `mov` is that the second operand always uses brackets \(`[` `]`\), however here, `lea` doesn't copy the pointed value but the _effective address_, meaning the actual address calculated within bracket. Here are some examples:
 
 ```text
 lea eax, [ebx] ; Copy the content of ebx to eax (equivalent of mov eax, ebx)
@@ -695,7 +712,7 @@ lea eax, [ebp+0x8]
 
 #### push - add data on top of the stack
 
-The `push` instruction will add on top of the stack the 4-bytes value referenced by the operand. Since the stack is growing backward \(see chapter [memory](memory.md#stack)\), the push instruction will first decrement `esp` \(the stack pointer\) by 4, then move the content referenced by the operand to the memory location pointed by `esp`.
+The `push` instruction adds on top of the stack the 4-bytes value referenced by the operand. Since the stack is growing backward \(see chapter [memory](memory.md#stack)\), the push instruction will first decrement `esp` \(the stack pointer\) by 4, then move the content referenced by the operand to the memory location pointed by `esp`.
 
 ```text
 ; without push
@@ -748,7 +765,7 @@ CPU are basically a big complex calculator. It has its own area solely meant for
 * NEG operation
 * Shift left/Shift right
 
-The below descriptions of arithmetic operations are for integer values only. More arithmetic operations exist\( for floating point for instance\) but we will not cover them in this course.
+The below descriptions of arithmetic operations are for integer values only. More arithmetic operations exist \(for floating point for instance\) but we will not cover them in this course.
 
 {% hint style="info" %}
 In the below examples, you should see each line as independent and not being part of the same program. Since instructions change the content of registers, those changes are not taken into consideration in the next line.
@@ -775,7 +792,7 @@ As for any instruction, we cannot use direct memory address for both operands at
 
 #### sub - subtraction
 
-The `sub` instruction subtract the referenced value by the second operand to the referenced value by the first operand and save the result in the first operand.
+The `sub` instruction subtracts the referenced value by the second operand to the referenced value by the first operand and save the result in the first operand.
 
 ```text
 ; eax = 0xbfff1122
@@ -848,7 +865,7 @@ idiv [0xbfff1122] ; eax = 0x00e4457d and edx = 0x00000f7a
 
 #### and
 
-The `and` instruction execute a logic AND operation the between referenced values of both operands and save the result in the first operand.
+The `and` instruction executes a logic AND operation the between referenced values of both operands and save the result in the first operand.
 
 ```text
 ; eax = 0xbfff1122
@@ -865,7 +882,7 @@ and ebx, [0xbfff1122]  ; ebx = 0x00001230
 
 #### or
 
-The `or` instruction execute a logic OR operation between the referenced values of both operands and save the result in the first operand.
+The `or` instruction executes a logic OR operation between the referenced values of both operands and save the result in the first operand.
 
 ```text
 ; eax = 0xbfff1122
@@ -882,7 +899,7 @@ or ebx, [0xbfff1122]  ; ebx = 0x1234577f
 
 #### xor
 
-The `xor` instruction execute a logic XOR operation between the referenced values of both operands and save the result in the first operand.
+The `xor` instruction executes a logic XOR operation between the referenced values of both operands and save the result in the first operand.
 
 ```text
 ; eax = 0xbfff1122
@@ -899,7 +916,7 @@ xor ebx, [0xbfff1122]  ; ebx = 0x1234454f
 
 #### not
 
-The `not` instruction execute a logic not operation on the referenced value by the operand and save the result in the operand.
+The `not` instruction executes a logic not operation on the referenced value by the operand and save the result in the operand.
 
 ```text
 ; eax = 0xbfff1122
@@ -912,7 +929,7 @@ not [0xbfff1122], ebx ; 0xbfff1122 is now pointing to the value 0xffffecc8
 
 #### neg - negate
 
-The `neg` instruction negates the referenced value by the operand and save the result in the operand. So the value 123 would become -123. Negative signed integer will be explained more in details in chapter integer overflow, but for now, what you have to know is that negating is done by executing a \[two's complement operation\]\([https://en.wikipedia.org/wiki/Two's\_complement](https://en.wikipedia.org/wiki/Two's_complement)\), which consist of inverting the binary value and add 1.
+The `neg` instruction negates the referenced value by the operand and save the result in the operand. So the value 123 would become -123. Negative signed integer will be explained more in details in chapter integer overflow, but for now, what you have to know is that negating is done by executing a [two's complement operation](https://en.wikipedia.org/wiki/Two's_complement), which consist of inverting the binary value and add 1.
 
 ```text
 ; eax = 0xbfff1122
@@ -925,7 +942,7 @@ neg [0xbfff1122], ebx ; 0xbfff1122 is now pointing to the value 0xffffecc9 (sign
 
 #### shl - shift left
 
-The `shl` instruction execute a logic shift left operation to the referenced value of the first operand. The number of bit to shift is indicating in the second operand. The second operand can be a constant \(between 1 and 31\) or the 8-bit register `cl`.
+The `shl` instruction executes a logic shift left operation to the referenced value of the first operand. The number of bit to shift is indicating in the second operand. The second operand can be a constant \(between 1 and 31\) or the 8-bit register `cl`.
 
 ```text
 ; eax = 0xbfff1122
@@ -943,7 +960,7 @@ shl DWORD PTR [0xbfff1122], cl ; 0xbfff1122 is now pointing to the value 0x00009
 
 #### shr - shift right
 
-The `shr` instruction execute a logic shift right operation to the referenced value of the first operand. The number of bit to shift is indicating in the second operand. The second operand can be a constant \(between 1 and 31\) or the 8-bit register `cl`.
+The `shr` instruction executes a logic shift right operation to the referenced value of the first operand. The number of bit to shift is indicating in the second operand. The second operand can be a constant \(between 1 and 31\) or the 8-bit register `cl`.
 
 ```text
 ; eax = 0xbfff1122
@@ -970,7 +987,7 @@ The operand can be a direct memory address or an offset to the current instructi
 Except for the `jmp` instruction, all jump instructions are **conditional**. This means the jump \(i.e. redirection\) is taken only if the condition\(s\) are met, otherwise, the CPU just move to the next instruction. Those conditions are solely based on the [EFLAG](memory.md#flags-register) register's values, e.g.:
 
 * SF == 1 \(did the last operation resulted with a negative value?\)
-* ZF == 0 \("did the last operation resulted with zero?"\)
+* ZF == 0 \(did the last operation resulted with zero?\)
 
 I forgot to mention but all arithmetic or logical operations mentioned [earlier](assembly.md#math-logic-operations) update one or more flags from the [EFLAG](memory.md#flags-register) register. Here is a short recap of flags relevant for this chapter:
 
@@ -979,7 +996,7 @@ I forgot to mention but all arithmetic or logical operations mentioned [earlier]
 * **C**​arry **F**​lag \(**CF**\): indicates whether an arithmetic [carry](http://mathworld.wolfram.com/Carry.html) or [borrow](http://mathworld.wolfram.com/Borrow.html) has been done on the most significant bit position.
 * **O**​verflow **F**​lag \(**OF**\): indicates whether an arithmetic overflow has occurred in the last operation. More info about what is an arithmetic overflow in chapter [integer overflow]().
 
-Now, let's say we have a program that verifies a PIN code. If the PIN is correct \(_first_ branch\), `ebx` is set to `true` with the value `0x00000001`, otherwise, if the PIN is incorrect \(_second_ branch\), `ebx` is set to `false` with the value `0x00000000`. The PIN entered by the user is stored in `eax`. The valid PIN is 1234 \(0x4d2 in hexadecimal\).
+Now, let's say we have a program that verifies a PIN code. The PIN entered by the user is stored in `eax`. If the PIN is correct \(_first_ branch\), `ebx` is set to `true` with the value `0x00000001`, otherwise, if the PIN is incorrect \(_second_ branch\), `ebx` is set to `false` with the value `0x00000000`. The PIN entered by the user is stored in `eax`. The valid PIN is 1234 \(0x4d2 in hexadecimal\).
 
 For this, what we can do is to subtract 1234 to `eax`. The `sub` instruction will update the EFLAG register accordingly.
 
@@ -993,14 +1010,14 @@ For this, what we can do is to subtract 1234 to `eax`. The `sub` instruction wil
 ```
 
 {% hint style="info" %}
-The first "column" contains the addresses where the instructions are located in memory. I arbitrary choose the first address to be`0x08048400`. The third "column" contains the instruction in assembly and the second "column" contains the actual machine instructions in memory read by the CPU. Here, the jump instructions \(second and fourth lines\) are using offset, so the first `jz` instruction first instance, is not really `jz 0x0804840e`, but actually `jz $+7`, where `$` means the current instruction and `+7` is the offset, so 0x08048405 + 7 = 0x0804840e.
+The first "column" contains the addresses where the instructions are located in memory. I arbitrary choose the first address to be`0x08048400`. The second "column" contains the actual machine instructions in memory read by the CPU and the third "column" contains the instructions in assembly. Here, the jump instructions \(second and fourth lines\) are using offset, so the first `jz` instruction is not really `jz 0x0804840e`, but actually `jz $+7`, where `$` means the current instruction and `+7` is the offset, so 0x08048405 + 7 = 0x0804840e.
 {% endhint %}
 
 Back to the assembly code: we first subtract 1234 to `eax`. If `eax` contains the value 1234 \(the valid PIN\), the result will be 0, so the `sub` instruction will set the zero flag \(**ZF**\) to `1`. If it is any other value, the `sub` instruction will set **ZF** to `0`.
 
 Once the subtraction done, we use the jump instruction `jz 0x0804840e`, i.e. "jump to 0x0804840e if the last operation resulted with 0". So basically, if `eax` contained 1234, the execution flow is redirected to `0x0804840e`, otherwise we move to the next instruction at `0x08048407`.
 
-`0x0804840e` is the _first_ branch were `ebx` is set to true while `0x08048407` is the _second_ branch where `ebx` is set to false. The thing is we placed the _first_ branch in the memory right after the _second_ branch, so if we took the _second_ branch \(i.e. PIN is not equal to 1234\), we need to place an unconditional jump at the end of the branch to skip the _first_ one.
+`0x0804840e` is the _first_ branch were `ebx` is set to true while `0x08048407` is the _second_ branch where `ebx` is set to false. The thing is, we placed the _first_ branch in the memory right after the _second_ branch, so if we took the _second_ branch \(i.e. PIN is not equal to 1234\), we need to place an unconditional jump at the end of that branch to skip the _first_ one.
 
 ![Same code, three examples](.gitbook/assets/branch-examples.gif)
 
@@ -1296,7 +1313,7 @@ The jump is taken when **SF**=`false` .
 
 ### Comparison instruction
 
-So far, whenever we wanted to compare two values, we used the instruction `sub` to set the flag register accordingly. However, the `sub` instruction overwrites the first operand with the result in the process, which might sometime be a bit annoying if you want to use the register later. So, instead of using sub, you could also use the instruction `cmp` or `test`.
+So far, whenever we wanted to compare two values, we used the instruction `sub` to set the flag register accordingly. However, the `sub` instruction overwrites the first operand with the result in the process, which might sometime be a bit annoying if you want to use the register later. So, instead of using `sub`, you could also use the instruction `cmp` or `test`.
 
 #### cmp
 
@@ -1367,7 +1384,7 @@ while(int a = 0; a < 5; ++a)
 }
 ```
 
-However, the `do...while` loop will be slightly different since the code inside the loop will be executed at least once. So, in this case, we don't need the unconditional jump anymore at the beginning just before the loop:
+However, the `do...while` loop will be slightly different since the code inside the loop will be executed at least once. So, in this case, we don't need the unconditional jump any more at the beginning just before the loop:
 
 ```text
 int a = 0;
@@ -1437,7 +1454,7 @@ In order to call a function, you simply need to use the instruction `call`. The 
 
 #### Symbol & relocation
 
-When reversing an application, `gdb` \(as well as other disassemblers/debuggers\) might sometime be able to display the actual function name instead of the address \(or offset\). For instance, whenever we call the function `print_hello`, the call operand is automatically resolved by `gdb` as `call print_hello`. This name resolution is possible thanks to the **symbol table**. The symbol table is built by the compiler to associate compiled data \(memory address\) with its initial declaration/representation in the source code, e.g. the **FUNC**tion named `print_hello` starts at `0x0804848b` \(see `readelf` output below\). So, whenever `gdb` disassembles the function `main`, it resolves the address pointed by the `call` operand and look up the symbol table to see there is any function associate to that address.
+When reversing an application, `gdb` \(as well as other disassemblers/debuggers\) might sometime be able to display the actual function name instead of the address \(or offset\). For instance, whenever we call the function `print_hello`, the call operand is automatically resolved by `gdb` as `call print_hello`. This name resolution is possible thanks to the **symbol table**. The symbol table is built by the compiler to associate compiled data \(memory address\) with its initial declaration/representation in the source code, e.g. the **func**tion named `print_hello` starts at `0x0804848b` \(see `readelf` output below\). So, whenever `gdb` disassembles the function `main`, it resolves the address pointed by the `call` operand and look up the symbol table to see there is any function associate to that address.
 
 To display the symbol table, you can use the command `readelf` with the option `-s`:
 
@@ -1457,7 +1474,7 @@ Symbol table '.symtab' contains 71 entries:
 
 For the imported functions such as `printf`, the name resolution works a little bit differently. The [dynamic linkage](https://www.technovelty.org/linux/plt-and-got-the-key-to-code-sharing-and-dynamic-libraries.html) of imported functions might be a bit complex and irrelevant for this beginner course on application security, but basically, `gdb` uses the **relocation table** to resolve name for imported functions.
 
-#### Instruction
+#### call instruction
 
 The instruction to call a function has the following structure:
 
@@ -1475,7 +1492,7 @@ call $-0x123 ; call the function located 0x123 bytes further
 call $+0x123 ; call the function located 0x123 bytes earlier
 ```
 
-The `call` instruction when executed first `push` the address of the instruction located right after the `call` itself, then it redirect the flow \(overwrite `eip`\) to the address referenced in the operand. So basically, the following instructions...
+The `call` instruction when executed first `push` the address of the instruction located right after the `call` itself, then it redirect the flow \(overwrite `eip`\) with the address referenced in the operand. So basically, the following instructions...
 
 ```text
 0x0804847c:    call   0x804848b
@@ -1490,7 +1507,7 @@ The `call` instruction when executed first `push` the address of the instruction
 0x08048481:    nop
 ```
 
-The reason why the address of the next instruction \(known as the **return address**\) is pushed to the stack is because function always terminates with a `ret` instruction. The `ret` instruction can be seen as something similar to `pop eip` \(which is not a valid instruction\). So, one crucial aspect when creating a function is that no matter what you add/remove in the stack \(e.g. local variables, arguments for the next function, etc\), you must to clean the stack so that at the end of the function, once all the code executed, the stack pointer is pointing to the **return address** pushed earlier with the initial `call` instruction and the ret instruction redirect the flow back to the _caller_, right after the `call` instruction.
+The reason why the address of the next instruction \(known as the **return address**\) is pushed to the stack is because function always terminates with a `ret` instruction. The `ret` instruction can be seen as something similar to `pop eip` \(which is not a valid instruction\). So, one crucial aspect when creating a function is that no matter what you add/remove in the stack \(e.g. local variables, arguments for the next function, etc\), you must to clean the stack so that at the end of the function, once all the code executed, the stack pointer is pointing to the **return address** pushed earlier with the initial `call` instruction and the `ret` instruction redirect the flow back to the _caller_, right after the `call` instruction.
 
 {% hint style="info" %}
 A _caller_ is a the function that called another, while a _callee_ is a function called by another.
@@ -1498,11 +1515,11 @@ A _caller_ is a the function that called another, while a _callee_ is a function
 
 #### Stack frame
 
-A function can be called by another function which itself has been called by another function etc. We've seen it earlier, arguments and local variables are pushed/stored in the stack. So the stack is an accumulation of all variables from "active" functions. In order to differentiate local variables and argument from one to another, we have a concept of stack frame in assembly; a frame in the stack that contains all values related to the current running function with the arguments located right before the frame itself. A stack frame is always delimited by `ebp` \(base pointer\) and `esp` \(stack pointer\).
+A function can be called by another function which itself has been called by another function, etc. We've seen it earlier, arguments and local variables are pushed/stored in the stack. So the stack is an accumulation of all variables from "active" functions. In order to differentiate local variables and argument from one to another, we have a concept of stack frame in assembly. A stack frame is a memory area in the stack that contains all values related to a called function with the arguments located right before the frame itself. A stack frame is always delimited by `ebp` \(base pointer\) and `esp` \(stack pointer\).
 
 ![main stack frame](.gitbook/assets/main-stack-5.png)
 
-But then, how to update the stack frame whenever a function is called or returns back to the caller? All this is done by the **prolog** and **epilog**. The prolog and epilog are a few instructions located at the very beginning and the end of a function to save the previous stack frame, build a new one and recover the saved one once the function finished.
+But then, how to create, update and clean the stack frame whenever a function is called or returns back to the caller? All this is done by the **prolog** and **epilog**. The prolog and epilog are a few instructions located at the very beginning and the end of a function to save the previous stack frame, build a new one and recover the saved one once the function finished.
 
 The **prolog** consists of the following:
 
@@ -1512,7 +1529,7 @@ mov ebp, esp  ; reset the base pointer for the current function
 sub esp, 0x?? ; allocate memory for local variables
 ```
 
-At this point, we have a stack frame set, where local variable can be reached with a positive offset to `ebp` \(e.g. `[ebp+4]`\) or sometimes with a negative offset to `esp` \(e.g. `[esp-10]`\). Argument can be reached with a negative offset to `ebp` \(e.g. `[ebp+8]`\).
+At this point, we have a stack frame set, where local variable can be reached with a negative offset to `ebp` \(e.g. `[ebp-4]`\) or sometimes with a positive offset to `esp` \(e.g. `[esp+10]`\). Argument can be reached with a positive offset to `ebp` \(e.g. `[ebp+8]`\).
 
 {% hint style="info" %}
 `ebp` will always be pointing to the saved `ebp` from the caller and `[ebp-4]` will always be pointing to the return address.
@@ -1658,14 +1675,14 @@ Remember that CPU cannot copy directly from memory to memory. The data have to t
 {% endhint %}
 
 {% hint style="info" %}
-As seen earlier, function argument are accessed with a positive offset to `ebp`, while local function are accesed with a negative offset to `ebp`.
+As seen earlier, function argument are accessed with a positive offset to `ebp`, while local function are accessed with a negative offset to `ebp`.
 {% endhint %}
 
 The same takes place with the `second` argument \(`ebp+0x0c`\) : it is first copied in `eax` \(line 37\) then copied from `eax` to the local variable `y` \(`ebp-0x08`\) \(line 38\).
 
-The local variable `x` is then saved temporary in the register `edx` \(line 39\) and the local variable `y` is saved in eax \(line 40\). Both variables are stored in registers for the `add` instruction in line 41. The result is then saved in the local variable `result` \(`ebp-0x04`\) \(line 42\).
+The local variable `x` is then saved temporary in the register `edx` \(line 39\) and the local variable `y` is saved in `eax` \(line 40\). Both variables are stored in registers for the `add` instruction in line 41. The result is then saved in the local variable `result` \(`ebp-0x04`\) \(line 42\).
 
-The function `add` returns the variable `result`, so the content of `result` is copied in `eax` \(line 43\), which is pointless because `eax` still contains the result of the addition, but anyway. Then we have the epilog \(line 44-45\) that clear the `add` stack frame and set back the `main` stack frame. The stack pointer is now pointing to the return address in `main` and the `ret` instruction is executed \(line 45\) to jump right after the `call add`.
+The function `add` returns the variable `result`, so the content of `result` is copied in `eax` \(line 43\), which is pointless because `eax` still contains the result of the addition, but whatever. Then we have the epilog \(line 44-45\) that clears the `add` stack frame and set back the `main` stack frame. The stack pointer is now pointing to the return address in `main` and the `ret` instruction is executed \(line 45\) to jump right after the `call add`.
 
 `eax` contains the return value \(i.e. `result`\), which is copied to the `main`'s local variable `ret` \(line 18\). `ret` is then pushed to the stack \(line 20\) as second argument to `printf`, then a pointer to the format string `"ret = %d"` is pushed to the stack \(line 21\) as first argument. `printf` is then called.
 

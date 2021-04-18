@@ -778,7 +778,7 @@ Sometimes, the program can take arguments, like for instance the Linux command `
 $ cp /path/to/source-file /path/to/destination-file
 ```
 
-Whenever you send arguments to a program, it will be available via an array of pointer.
+Whenever you send arguments to a program, it will be available through an array of pointer.
 
 Here is the actual declaration of `main`:
 
@@ -793,7 +793,7 @@ The function `main` is usually expected to return an _exit status_ \(`0` if the 
 
 We’ve seen earlier in chapter [CPU](cpu.md), strings are actually an array of `char` terminated with a NULL character \(`0x00`\). As we’ve seen in this chapter, whenever we use the name of an array without brackets, the variable is interpreted as a pointer to the first element of that array. Whenever we deal with a string, we usually send the pointer and not a single element of the array. 
 
-So the argument `char *argv[]` is an array that contains a list of addresses that points to all arguments \(string\) used when calling the application. Therefore, `argv[0]` is a string pointer that points to the first argument, `argv[1]` the second, etc.
+So the argument `char *argv[]` is an array that contains a list of address that point to all arguments \(string\) used when calling the application. Therefore, `argv[0]` is a string pointer to point to the first argument, `argv[1]` the second, etc.
 
 Here is an example to print all program arguments:
 
@@ -814,43 +814,43 @@ int main (int argc, char *argv[])
 ```
 {% endcode %}
 
-Here is the output when executed:
+When executed:
 
 ```text
 $ gcc read-args.c -o read-args
 $ ./read-args hello world
 0. ./args 
 1. hello 
-2. world
+2. worl d
 ```
 
 ## Common functions
 
-The following functions are all part of the default `libc.so` library and are common functions used in most programs. These functions are all somewhat related to the vulnerabilities we will cover in this course, so it is very important to understand what’s their purposes and how they work.
+The following functions are all part of the default `libc.so` library and are common functions used in most programs. These functions are all somewhat related to the vulnerabilities we will cover in this course, so it is very important to understand what’s their purpose and how they work.
 
-If you don't want to go through all the functions for now, but want to learn them as we progress in this course, here is a summary of functions that will be used per vulnerability:
+If you don't want to go through all the functions for now, but want to learn them as we learn about vulnerabilities, here is a summary of functions that will be used per vulnerability:
 
-* [Buffer overflow](buffer-overflow.md): [gets](programming.md#gets) and [strcpy](programming.md#strcpy);
-* _Format string_: [printf](programming.md#printf) and [sprintf](programming.md#sprintf);
-* _Use-after-free_: [malloc](programming.md#malloc) and [free](programming.md#free).
+* [Buffer overflow](buffer-overflow.md): gets and strcpy
+* _Format string_: printf and sprintf
+* _Use-after-free_: malloc and free
 
 ### printf
 
 We’ve already used this function earlier in some examples. We know it is meant to print text in the terminal \(standard output\), but let’s have a closer look at it.
 
-Unlike most functions, `printf` can take an _unlimited_ amount of argument but it expects at least one argument, the _format string_. The _format string_ is basically what `printf` will _print_ in the terminal.
+Unlike most functions, `printf` can take an _unlimited_ amount of argument. It expects at least one argument, the _format string_. The _format string_ is basically what `printf` will _print_ in the terminal.
 
 ```c
 printf("Hello World!"); // Hello World!
 ```
 
-Whenever you want to print the content of a variable within that text, you can add a _format specifier_ in the _format string_. The function `printf` will then parse the _format string_ and replace the _format specifier_ with the corresponding value sent as an argument to the function using the corresponding format. The _format specifier_ has the following structure: `%[flags][width][.precision][length]specifier`.
+Whenever you want to print a variable, within that text, you can add a _format specifier_ in the _format string_. The function `printf` will then replace the _format specifier_ with the corresponding value sent as an argument to the function using the corresponding format. The _format specifier_ has the following structure: `%[flags][width][.precision][length]specifier`.
 
 {% hint style="info" %}
 Options in brackets \(`[` `]`\) are optional.
 {% endhint %}
 
-The `specifier` is the most important part of the _format specifier_ as it tells the way the corresponding input should be interpreted and displayed. Here is the list of valid _specifier_:
+The `specifier` is the most important part of the _format specifier_ as it the way the corresponding input is interpreted and displayed. Here is the list of valid _specifier_:
 
 | Specifier | Output | Example |
 | :--- | :--- | :--- |
@@ -895,7 +895,7 @@ printf("Pointer to variable c: %p \n", &c); //Pointer to variable c: 0x--------
 The backslash n \(`\n`\) is meant to go to the next line.
 {% endhint %}
 
-So far we’ve printed only one single variable, but `printf` can, of course, print more than one. For this, you simply need to add the variable in the argument of the function and add the appropriate _specifier_ in the _format string_. The first _format specifier_ will correspond to the second argument, the second _format specifier_ will correspond to the third one, …
+So far we’ve printed only one variable, but `printf` can, of course, print more than one. For this, you simply need to add the variable in the argument of the function and add the appropriate _specifier_ in the _format string_. The first _format specifier_ will correspond to the second argument, the second _format specifier_ will correspond to the third one, …
 
 ```c
 int x = 42;
@@ -907,7 +907,7 @@ res = x + y;
 printf("%d + %d = %d \n", x, y, res); // 42 + 1337 = 1379
 ```
 
-Among all _specifier_, there is one particular: `n`. Unlike the other _specifier_, `n` is not meant to print something in the terminal but instead, it writes the amount of characters _printed_ so far in the terminal in a given address.
+Among all _specifier_, there is one particular: `n`. Unlike the other _specifier_, `n` is not meant to print something in the terminal but instead, it writes the number of characters written so far at a given address.
 
 ```c
 int i;
@@ -943,7 +943,7 @@ The _format specifier_ can also contain the following optional sub-specifiers:
 
 For this workshop, we are only interested in the _width_ sub-specifier. If you want more information about the other sub-specifier, you can read the [printf reference](http://www.cplusplus.com/reference/cstdio/printf/).
 
-By default, `printf` will print the minimum amount of character required to display the variable. For instance, the integer `1234`, although it’s stored in a 32-bit variable, if we want to print it as hexadecimal, we won’t have `000004D2`, but only `4D2`:
+By default, printf will print the minimum amount of character required to display the variable. For instance, the integer `1234`, although it’s stored in a 32-bit variable, if we want to print it as hexadecimal, we won’t have `000004D2`, but only `4D2`:
 
 ```c
 int n = 1234;
@@ -951,15 +951,15 @@ int n = 1234;
 printf("%d in hex: %X\n", n, n); // 1234 in hex: 4D2
 ```
 
-If you want the variable to be printed with minimum 8 character, you can use the _width_ sub-specifier:
+If you want the variable to be printed to actually be printed with minimum 8 character, you can use the _width_ sub-specifier:
 
 ```c
 int n = 1234;
 
-printf("%d in hex: %8X\n", n, n); // 1234 in hex:      4D2
+printf("%d in hex: %X\n", n, n); // 1234 in hex: 4D2
 ```
 
-By default, the padding uses a space \( ``\). So here, in this case, the variable `1234` was printed with 5 x spaces and 3 x hexadecimal values. If you want to pad it with `0`’s, you can use the _flag_ sub-specifier `0`:
+By default, the padding is a space \( ``\). So here, in this case, the variable `1234` was printed with 5 x space and 3 x hexadecimal values. If you want to pad it with `0`’s, you can use the _flag_ sub-specifier `0`:
 
 ```c
 int n = 1234;
@@ -967,7 +967,7 @@ int n = 1234;
 printf("%d in hex: %08X\n", n, n); // 1234 in hex: 000004D2
 ```
 
-In the example below, we want to print the same variable multiple times. Therefore, we send the same variable multiple times as argument. In order to avoid that, we can use the _position specifier_:
+In our last example, we printed the same variable multiple times. Therefore, we send the same variable multiple times as argument. In order to avoid that, we can use the _position specifier_:
 
 ```c
 int n = 1234;
@@ -977,7 +977,7 @@ printf("%d in hex: %X\n", n, n); // 1234 in hex: 4D2
 printf("%1$d in hex: %1$X\n", n); // 1234 in hex: 4D2
 ```
 
-The `1$` correspond to the second argument, `2$` correspond to the third argument, etc. Here is an example where we use the _position specifier_ to change the order and re-use multiple time the same argument:
+The `1$` correspond to the second argument, `2$` correspond to the third argument, etc. Here is a final example:
 
 ```c
 char e = 'E';
@@ -990,7 +990,7 @@ printf("%2$c %1$c %3$c %3$c %4$c \n", e, h, l, o); // H E L L O
 
 ### sprintf
 
-The function `sprintf` is a bit like `printf`, it builds a string based on a _format string_ and additional arguments, but instead of printing the result, it stores it in a string variable \(char array\). The destination variable is the first argument, the format string is the second and additional format parameters are place after.
+The function `sprintf` is a bit like `printf`, it builds a string based on a _format string_ and the additional arguments, but instead of printing the result, it stores it in a string variable \(char array\). The destination variable is the first argument, the format string is the second and additional format parameters are place after.
 
 ```c
 #include <stdio.h>
@@ -1001,7 +1001,7 @@ void main()
     int a = 42;
     char string[100]; 
 
-    sprintf(string, "Answer = %d", a);
+    sprintf(string, "Answer = %d", &a);
     
     printf("string: %s \n", string); // string: Answer = 42
 
@@ -1018,10 +1018,10 @@ For this workshop, we will only use the _format specifier_ without options, i.e.
 
 | specifier | Description | Characters extracted |
 | :--- | :--- | :--- |
-| `i` or `d` | Integer | Any number of digits, optionally preceded by a sign \(+ or -\). Decimal digits assumed by default \(0-9\), but a 0 prefix introduces octal digits \(0-7\), and 0x hexadecimal digits \(0-f\). Signed argument. |
-| `c` | Character | The next character. If a width other than 1 is specified, the function reads exactly width characters and stores them in the successive locations of the array passed as argument. No null character is appended at the end. |
-| `s` | String of characters | Any number of non-whitespace characters, stopping at the first whitespace character found. A terminating null character is automatically added at the end of the stored sequence. |
-| `p` | Pointer address | A sequence of characters representing a pointer. The particular format used depends on the system and library implementation, but it is the same as the one used to format %p in `printf`. |
+| i | Integer | Any number of digits, optionally preceded by a sign \(+ or -\). Decimal digits assumed by default \(0-9\), but a 0 prefix introduces octal digits \(0-7\), and 0x hexadecimal digits \(0-f\). Signed argument. |
+| c | Character | The next character. If a width other than 1 is specified, the function reads exactly width characters and stores them in the successive locations of the array passed as argument. No null character is appended at the end. |
+| s | String of characters | Any number of non-whitespace characters, stopping at the first whitespace character found. A terminating null character is automatically added at the end of the stored sequence. |
+| p | Pointer address | A sequence of characters representing a pointer. The particular format used depends on the system and library implementation, but it is the same as the one used to format %p in `printf`. |
 
 ```c
 #include <stdio.h>
@@ -1045,7 +1045,7 @@ void main()
 ```
 
 {% hint style="info" %}
-At the first `scanf` \(line 10\) we enter a number in the terminal. In order to “validate” the number, we press `<enter>`. However, this `<enter>`  is also sent to `scanf` as `\n`, which doesn’t match the format specifier \(integer\), so `scanf` keeps it in the buffer. Therefore next time `scanf` is called, the first character received will be that `\n`. In order to discard that newline character, we added a whitespace in our format strings of the following `scanf`. This whitespace tells `scanf` to ignore any “whitespace” element, i.e. space, tabulation, and newline.
+At the first `scanf` we enter a number in the terminal. In order to “validate” the number, we press `<enter>`. However, this `<enter>`  is also sent to `scanf` as `\n`, which doesn’t match the format specifier, so `scanf` keep it in the buffer. So next time `scanf` is called, the first character received will be that `\n`. In order to discard that newline character, we added a whitespace in our format strings of the following `scanf`. This whitespace tells `scanf` to ignore any “whitespace” element, i.e. space, tabulation, and newline.
 {% endhint %}
 
 {% hint style="info" %}
@@ -1104,7 +1104,7 @@ void main()
 The prototype of the function `strcpy` is located in the header file `string.h`, so you need to `#include` it first at the beginning of your code.
 {% endhint %}
 
-For mor information about the function, you can have a look at the [strcpy reference](http://www.cplusplus.com/reference/cstring/strcpy/).
+There is not much more to say about that function. If you have to read a bit more about it, you can have a look at the [strcpy reference](http://www.cplusplus.com/reference/cstring/strcpy/).
 
 ### malloc
 
@@ -1159,7 +1159,7 @@ Here again, that’s pretty much it. If you want further information, you can re
 
 ### free
 
-The function `free` was also covered in chapter [Memory](memory.md) - [Heap](memory.md#heap). `free` is used whenever we no longer need the dynamically allocated memory block. It _releases_ the allocated memory block so that it can be re-used for another dynamically allocated variable. The function takes as argument a pointer to a dynamically allocated memory block and returns nothing.
+The function `free` was also covered in chapter [Memory](memory.md) - [Heap](memory.md#heap). `free` is used whenever we no longer need the dynamically allocated memory block. It _releases_ so that it can be re-used for another dynamically allocated memory. The function takes as argument a pointer to a dynamically allocated memory block and returns nothing.
 
 ```c
 #include <stdio.h>
@@ -1184,10 +1184,6 @@ void main()
 
 }
 ```
-
-{% hint style="info" %}
-he prototype of the function `free` is located in the header file `stdlib.h`, so you need to `#include` it first at the beginning of your code.
-{% endhint %}
 
 Once again, for more information, you can read the [free reference](http://www.cplusplus.com/reference/cstdlib/free/). We will see more about this function in the chapter [use-after-free](https://beaujeant.github.io/appsec101/programming/#).
 
