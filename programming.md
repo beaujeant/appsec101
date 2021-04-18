@@ -959,7 +959,7 @@ int n = 1234;
 printf("%d in hex: %8X\n", n, n); // 1234 in hex:      4D2
 ```
 
-By default, the padding is a space \( ``\). So here, in this case, the variable `1234` was printed with 5 x spaces and 3 x hexadecimal values. If you want to pad it with `0`’s, you can use the _flag_ sub-specifier `0`:
+By default, the padding uses a space \( ``\). So here, in this case, the variable `1234` was printed with 5 x spaces and 3 x hexadecimal values. If you want to pad it with `0`’s, you can use the _flag_ sub-specifier `0`:
 
 ```c
 int n = 1234;
@@ -990,7 +990,7 @@ printf("%2$c %1$c %3$c %3$c %4$c \n", e, h, l, o); // H E L L O
 
 ### sprintf
 
-The function `sprintf` is a bit like `printf`, it builds a string based on a _format string_ and the additional arguments, but instead of printing the result, it stores it in a string variable \(char array\). The destination variable is the first argument, the format string is the second and additional format parameters are place after.
+The function `sprintf` is a bit like `printf`, it builds a string based on a _format string_ and additional arguments, but instead of printing the result, it stores it in a string variable \(char array\). The destination variable is the first argument, the format string is the second and additional format parameters are place after.
 
 ```c
 #include <stdio.h>
@@ -1001,7 +1001,7 @@ void main()
     int a = 42;
     char string[100]; 
 
-    sprintf(string, "Answer = %d", &a);
+    sprintf(string, "Answer = %d", a);
     
     printf("string: %s \n", string); // string: Answer = 42
 
@@ -1018,10 +1018,10 @@ For this workshop, we will only use the _format specifier_ without options, i.e.
 
 | specifier | Description | Characters extracted |
 | :--- | :--- | :--- |
-| i | Integer | Any number of digits, optionally preceded by a sign \(+ or -\). Decimal digits assumed by default \(0-9\), but a 0 prefix introduces octal digits \(0-7\), and 0x hexadecimal digits \(0-f\). Signed argument. |
-| c | Character | The next character. If a width other than 1 is specified, the function reads exactly width characters and stores them in the successive locations of the array passed as argument. No null character is appended at the end. |
-| s | String of characters | Any number of non-whitespace characters, stopping at the first whitespace character found. A terminating null character is automatically added at the end of the stored sequence. |
-| p | Pointer address | A sequence of characters representing a pointer. The particular format used depends on the system and library implementation, but it is the same as the one used to format %p in `printf`. |
+| `i` or `d` | Integer | Any number of digits, optionally preceded by a sign \(+ or -\). Decimal digits assumed by default \(0-9\), but a 0 prefix introduces octal digits \(0-7\), and 0x hexadecimal digits \(0-f\). Signed argument. |
+| `c` | Character | The next character. If a width other than 1 is specified, the function reads exactly width characters and stores them in the successive locations of the array passed as argument. No null character is appended at the end. |
+| `s` | String of characters | Any number of non-whitespace characters, stopping at the first whitespace character found. A terminating null character is automatically added at the end of the stored sequence. |
+| `p` | Pointer address | A sequence of characters representing a pointer. The particular format used depends on the system and library implementation, but it is the same as the one used to format %p in `printf`. |
 
 ```c
 #include <stdio.h>
@@ -1045,7 +1045,7 @@ void main()
 ```
 
 {% hint style="info" %}
-At the first `scanf` we enter a number in the terminal. In order to “validate” the number, we press `<enter>`. However, this `<enter>`  is also sent to `scanf` as `\n`, which doesn’t match the format specifier, so `scanf` keep it in the buffer. So next time `scanf` is called, the first character received will be that `\n`. In order to discard that newline character, we added a whitespace in our format strings of the following `scanf`. This whitespace tells `scanf` to ignore any “whitespace” element, i.e. space, tabulation, and newline.
+At the first `scanf` \(line 10\) we enter a number in the terminal. In order to “validate” the number, we press `<enter>`. However, this `<enter>`  is also sent to `scanf` as `\n`, which doesn’t match the format specifier \(integer\), so `scanf` keeps it in the buffer. Therefore next time `scanf` is called, the first character received will be that `\n`. In order to discard that newline character, we added a whitespace in our format strings of the following `scanf`. This whitespace tells `scanf` to ignore any “whitespace” element, i.e. space, tabulation, and newline.
 {% endhint %}
 
 {% hint style="info" %}
@@ -1104,7 +1104,7 @@ void main()
 The prototype of the function `strcpy` is located in the header file `string.h`, so you need to `#include` it first at the beginning of your code.
 {% endhint %}
 
-There is not much more to say about that function. If you have to read a bit more about it, you can have a look at the [strcpy reference](http://www.cplusplus.com/reference/cstring/strcpy/).
+For mor information about the function, you can have a look at the [strcpy reference](http://www.cplusplus.com/reference/cstring/strcpy/).
 
 ### malloc
 
@@ -1159,7 +1159,7 @@ Here again, that’s pretty much it. If you want further information, you can re
 
 ### free
 
-The function `free` was also covered in chapter [Memory](memory.md) - [Heap](memory.md#heap). `free` is used whenever we no longer need the dynamically allocated memory block. It _releases_ so that it can be re-used for another dynamically allocated memory. The function takes as argument a pointer to a dynamically allocated memory block and returns nothing.
+The function `free` was also covered in chapter [Memory](memory.md) - [Heap](memory.md#heap). `free` is used whenever we no longer need the dynamically allocated memory block. It _releases_ the allocated memory block so that it can be re-used for another dynamically allocated variable. The function takes as argument a pointer to a dynamically allocated memory block and returns nothing.
 
 ```c
 #include <stdio.h>
@@ -1184,6 +1184,10 @@ void main()
 
 }
 ```
+
+{% hint style="info" %}
+he prototype of the function `free` is located in the header file `stdlib.h`, so you need to `#include` it first at the beginning of your code.
+{% endhint %}
 
 Once again, for more information, you can read the [free reference](http://www.cplusplus.com/reference/cstdlib/free/). We will see more about this function in the chapter [use-after-free](https://beaujeant.github.io/appsec101/programming/#).
 
