@@ -1695,7 +1695,7 @@ If this chapter is not completely clear and understood to you, then, this means 
 * \[[2](https://en.wikipedia.org/wiki/Data_segment)\] [https://en.wikipedia.org/wiki/Data\_segment](https://en.wikipedia.org/wiki/Data_segment)
 * \[[3](https://stackoverflow.com/a/2136065)\] [https://stackoverflow.com/a/2136065](https://stackoverflow.com/a/2136065)
 * [ASCII](https://www.asciitable.xyz/): [https://www.asciitable.xyz/](https://www.asciitable.xyz/)
-* \[Two's complement\]\([https://en.wikipedia.org/wiki/Two's\_complement](https://en.wikipedia.org/wiki/Two's_complement)\): [https://en.wikipedia.org/wiki/Two's\_complement](https://en.wikipedia.org/wiki/Two's_complement)
+* [Two's complement](https://en.wikipedia.org/wiki/Two's_complement): [https://en.wikipedia.org/wiki/Two's\_complement](https://en.wikipedia.org/wiki/Two's_complement)
 * [https://www.cs.virginia.edu/~evans/cs216/guides/x86.html](https://www.cs.virginia.edu/~evans/cs216/guides/x86.html)
 * [dynamic linkage](https://www.technovelty.org/linux/plt-and-got-the-key-to-code-sharing-and-dynamic-libraries.html): [https://www.technovelty.org/linux/plt-and-got-the-key-to-code-sharing-and-dynamic-libraries.html](https://www.technovelty.org/linux/plt-and-got-the-key-to-code-sharing-and-dynamic-libraries.html)
 
