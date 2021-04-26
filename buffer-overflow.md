@@ -4,13 +4,13 @@ Finally, we made it: the first chapter actually talking about application securi
 
 ## Definition
 
-In the name of the vulnerability "buffer overflow", we have **buffer**... and **overflow**. A buffer if an area in memory where pieces of information \(e.g. variables, saved registers, etc\) are stored temporary to be used later. Typically, the **stack** can be considered as a buffer.
+In the name of the vulnerability "buffer overflow", we have **buffer**... and **overflow**. A buffer is an area in memory where pieces of information \(e.g. variables, saved registers, etc\) are stored temporary to be used later. Typically, the **stack** can be considered as a buffer.
 
 {% hint style="info" %}
 In this beginner course, we will focus on stack-based buffer overflow only.
 {% endhint %}
 
-In a buffer, information is stored contiguously \(one after another\), and we've seen it earlier, when stored in memory, data doesn't have type. This is just a succession of `1` and `0`. What differentiate one piece of information from another is:
+In a buffer, information is stored contiguously \(one after another\), and we've seen it earlier, when stored in memory, data doesn't have type. This is just a succession of `1` and `0`. What differentiates one piece of information from another is:
 
 * the pointer used to indicate the beginning of the data
 * the instruction to be executed
@@ -18,7 +18,7 @@ In a buffer, information is stored contiguously \(one after another\), and we've
 
 ![mov instruction with size directive](.gitbook/assets/size-directive.png)
 
-But for the CPU itself whether the data processed was initially an integer, a char or float, it doesn't matter, it will execute the instruction regardless of the type of data pointed by the operand\(s\).This means if we execute an instruction at the **wrong address**/**offset**, we might _mistakenly_ alter neighbour piece\(s\) of information in the buffer.
+But for the CPU itself, whether the data processed was initially an integer, a char or float, it doesn't matter, it will execute the instruction regardless of the type of the data pointed by the operand\(s\).This means if we execute an instruction at the **wrong address**/**offset**, we might _mistakenly_ alter neighbour piece\(s\) of information in the buffer.
 
 ```text
 ; snipped based on simple-add.c
@@ -30,15 +30,15 @@ mov    DWORD PTR [ebp-0a],eax  ; wrong offset which will overwrite previous loca
 
 ![mov instruction with wrong offset](.gitbook/assets/wrong-offset.gif)
 
-The most common situation whenever a wrong address/offset occurs is when browsing and writing in an array. The iteration counter used for indexing might not be properly verified and end up being higher than the actual size of the memory area allocated for the array, resulting in the array being **overflow** and overwriting the subsequent piece\(s\) of information.
+The most common situation whenever a wrong address/offset occurs is when reading and writing in an array. The iteration counter used for indexing might not be properly verified and end up being higher than the actual size of the memory area allocated for the array, resulting in the array being **overflow** and overwriting the subsequent piece\(s\) of information.
 
 ![Loop overflow](.gitbook/assets/loop-overflow.gif)
 
-So now you know what is a **buffer** and what we mean by **overflow** in that context.
+So now you know what a **buffer** is and what we mean by **overflow** in that context.
 
 ## Impacts
 
-Overwriting neighbour memory areas could be leveraged for **malicious** purpose. Here are two examples to illustrate the impact of a buffer overflow.
+Being able to overwrite neighbour memory areas could be leveraged for **malicious** purpose. Here are two examples to illustrate the impact of a buffer overflow.
 
 ### Edit sensitive neighbour variables
 
@@ -46,45 +46,53 @@ Let say for instance that you are playing an online video game. Your profile sho
 
 ![Game server stack](.gitbook/assets/game-stack.png)
 
-Now, let say the function used to update your name doesn't verify if the new name fits the memory area allocated for the name variable in the stack. You could try to update your **name**, with a string long enough that it overflows the array and overwrite the content of the next variable, i.e. your balance \(**wallet**\). For instance with the name "Queen Daenerys of the House Targaryen." \(35 characters\), which will overflow the 32 bytes array.
+{% hint style="info" %}
+To be honest, your profile is most likely stored in the heap but for the sake of having a simple example, we continue with this narrative.
+{% endhint %}
+
+Now, let say the function used to update your name doesn't verify if the new name fits the memory area allocated for the name variable in the stack. You could try to update your **name**, with a string long enough so that it overflows the array and overwrite the content of the next variable\(s\), i.e. your balance \(**wallet**\). For instance with the name "Queen Daenerys Targaryen Stormborn." \(35 characters + 1 NULL byte\), which will overflow the 32 bytes array.
 
 ![Wallet overflowed](.gitbook/assets/game-wallet-overflow.png)
 
-We now have `0x002e6e72` = 3042930 in our wallet!
+The last 3 characters of the new name \(i.e. `rn.`, which in hexadecimal are `0x72`, `0x6e` and `0x2e`\) overflowed the balance variable and we now have `0x002e6e72` = 3042930 \(little-endian\) in our wallet!
 
 {% hint style="info" %}
 Remember that a string always ends up with a `NULL` character
 {% endhint %}
 
-When overwriting the **wallet** variable, we didn't have to write a specific value, we just wanted to be more rich, so we just we just typed random text to overwrite the memory area where your balance is stored. If we were clever, we could also look in the ASCII table which printable character represent the higher value. Unfortunately, the highest value is the non-printable character `DEL`, so we could use the `~` instead \(`0x7e` in hexadecimal\). So, we can change our name to "Queen Daenerys of the House Targary~~~" in order to have `0x007f7f7f` = 8355711.
+When overwriting the **wallet** variable, we didn't have to write a specific value, we just wanted to be more rich, so we just we just typed random text to overwrite the memory area where your balance is stored. If we were clever, we could also look in the ASCII table which printable character represents the highest value. Unfortunately, the highest value is the non-printable character \(`DEL`\), so we could use the `~` instead \(`0x7e` in hexadecimal\). This means we can change our name to "Queen Daenerys Targaryen Stormbo~~~" in order to have `0x007f7f7f` = 8355711.
 
 ![Optimised waller overflow](.gitbook/assets/game-waller-overflow-opt.png)
 
 But then, why overwriting only the **wallet** you may ask? Why not also overwriting the **status** to be a moderator? 
 
-**Status** can only be `0x00000000` \(moderators\), `0x00000001` \(allies\) or `0x00000002` \(enemies\). What we can do is to overwrite the balance variable with four characters \(the size of an integer\) and stop there. The `NULL` string terminator character of the new name would overwrite the first byte of the status integer variable. Since the integers are stored in little-endian, overwriting the first byte will actually overwrite the least significant bit and thus would change the value to `0x00000000`.
+**Status** can only be `0x00000000` \(moderators\), `0x00000001` \(allies\) or `0x00000002` \(enemies\). What we can do is to overwrite the balance variable with four characters \(the size of an integer\) and stop there. The `NULL` string terminator character of the new name willl then overwrite the first byte of the status integer variable. Since the integers are stored in little-endian, overwriting the first byte will actually overwrite the least significant bit and thus would change the value to `0x00000000`.
+
+Our new name: "Queen Daenerys Targaryen Stormbo~~~~"
 
 ![Status overflowed](.gitbook/assets/game-status-overflow.png)
 
 ### Control the execution flow
 
-In the first example, we overwrite local variables located right after the overflowed array. Those variables were really specific to the program itself and located conveniently after the vulnerable memory area. Now, what if the vulnerable buffer doesn't contains any interesting variable to overflow? How else could I leverage a buffer overflow? You might have guessed by now based on the title: we could also also overwrite the return address! If we overwrite the return address, we could basically redirect the execution flow \(almost\) anywhere we want once the current function reaches the `ret` instruction.
+In the first example, we overwrote local variables located right after the overflowed array. Those variables were really specific to the program itself and located conveniently after the vulnerable memory area. Now, what if the vulnerable buffer doesn't contains any interesting variable to overflow? How else could I leverage a buffer overflow? You might have guessed by now based on the title: we could also overwrite the return address! If we overwrite the return address, we could basically redirect the execution flow \(almost\) anywhere we want once the current function reaches the `ret` instruction.
 
 If we re-use the previous example with the online game, we would need to overflow the **name** variable, overwrite the **status** and the **inventory** list, then we should have right after that the saved `ebp` and finally the return address. Here is the stack if we change our name to "Daenerys of the House Targaryen the First of Her Name".
 
 ![Return address overflowed](.gitbook/assets/ret-overflow.png)
 
-At the end of the function, when the epilog is executed, the recovered stack frame from the caller might be completely wrong \(depending how you overwrite the saved `ebp`\), but this shouldn't be a problem, you now have control of the execution flow and can decide what can be executed next.
+At the end of the function, when the epilog is executed, the recovered stack frame from the caller might be completely wrong \(depending how you overwrote the saved `ebp`\), but this shouldn't be a problem, you now have control of the execution flow and can decide what can be executed next. In this case, the executino flow will be redirected to `0x6d614e20`, which is a random address and would most likely crash the application.
 
 ## Purpose
 
-Some might wonder why is that interesting to redirect the execution flow or overwrite sensitive variables? Why not just writing a program that does exactly what I want instead exploiting a buffer overflow to redirect the execution to another potentially interesting function? Well, exploiting a buffer overflow might be interesting in several scenarios, but here are the three main ones:
+Some might wonder why is that interesting to redirect the execution flow or overwrite sensitive variables? Why not just writing a program that does exactly what I want instead exploiting a buffer overflow to redirect the execution to another potentially interesting function? 
+
+Well, exploiting a buffer overflow might be interesting in several scenarios, but here are the three main reasons:
 
 #### Escalate privilege
 
-When using a Linux, you are limited to your own user's right. Whenever you run a program, it inherit your access permission. So if you create a program that open and read `/etc/shadow` \(which has read and write access restriction to the user `root` only\), your program won't have the permission to do so \(unless you are `root`\). However, if you manage to find and exploit a buffer overflow on an application running with higher privileges \(let say `root`\), you will be able to execute malicious code with those privilege \(e.g. read `/etc/shadow`\).
+When using a Linux, you are limited to your own user's right. Whenever you run a program, it inherit your access permission. So, if you create a program that opens and reads `/etc/shadow` \(which has read and write access restriction to the user `root` only\), your program won't have the permission to do so \(unless you are `root`\). However, if you manage to find and exploit a buffer overflow on an application running with higher privileges \(let say `root`\), you will be able to execute malicious code with those privilege \(e.g. read `/etc/shadow`\).
 
-One interesting feature of Linux is the SUID. SUID, short for **S**et owner **U**ser **ID**, is a special type of file permissions given to a file. When defined, it gives temporary permissions to a user to run a program/file with the permissions of the file owner rather that the user who runs it. In simple words users will get file owner's permissions as well as owner UID and GID when executing a program \[[1](https://www.linux.com/blog/what-suid-and-how-set-suid-linuxunix)\]. So this means if the `root` user creates a program, set the permission so that anyone can execute it, then set the SUID, you will be able to run that program and the program will have root access permission. So, if you find a buffer overflow in that program, you will be able to execute code as `root`.
+One interesting feature of Linux is the SUID. Short for **S**et owner **U**ser **ID**, SUID is a special type of permissions given to a file. When defined, it gives temporary permissions to a user to run a program/file with the permissions of the file owner rather that the user who runs it. In simple words users will get file owner's permissions as well as owner UID and GID when executing a program \[[1](https://www.linux.com/blog/what-suid-and-how-set-suid-linuxunix)\]. So this means if the `root` user creates a program, set the permission so that anyone can execute it, then set the SUID, you will be able to run that program and the program will have root access permission. So, if you find a buffer overflow in that program, you will be able to execute code as `root`.
 
 {% hint style="info" %}
 This course didn't cover the Linux system and its permission so that's fine if this part is not clear to you.
