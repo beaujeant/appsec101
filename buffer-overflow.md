@@ -80,17 +80,17 @@ If we re-use the previous example with the online game, we would need to overflo
 
 ![Return address overflowed](.gitbook/assets/ret-overflow.png)
 
-At the end of the function, when the epilog is executed, the recovered stack frame from the caller might be completely wrong \(depending how you overwrote the saved `ebp`\), but this shouldn't be a problem, you now have control of the execution flow and can decide what can be executed next. In this case, the executino flow will be redirected to `0x6d614e20`, which is a random address and would most likely crash the application.
+At the end of the function, when the epilog is executed, the recovered stack frame from the caller might be completely wrong \(depending on how you overwrote the saved `ebp`\), but this shouldn't be a problem, you now have control of the execution flow and can decide what can be executed next. In this case, the execution flow will be redirected to `0x6d614e20`, which has not been specifically assigned and would most likely crash the application.
 
 ## Purpose
 
-Some might wonder why is that interesting to redirect the execution flow or overwrite sensitive variables? Why not just writing a program that does exactly what I want instead exploiting a buffer overflow to redirect the execution to another potentially interesting function? 
+Some might wonder why is that interesting to redirect the execution flow or overwrite sensitive variables? Why not just creating a program that does exactly what I want instead exploiting a buffer overflow to redirect the execution to another potentially interesting function? 
 
 Well, exploiting a buffer overflow might be interesting in several scenarios, but here are the three main reasons:
 
 #### Escalate privilege
 
-When using a Linux, you are limited to your own user's right. Whenever you run a program, it inherit your access permission. So, if you create a program that opens and reads `/etc/shadow` \(which has read and write access restriction to the user `root` only\), your program won't have the permission to do so \(unless you are `root`\). However, if you manage to find and exploit a buffer overflow on an application running with higher privileges \(let say `root`\), you will be able to execute malicious code with those privilege \(e.g. read `/etc/shadow`\).
+In Linux, you are often limited to your own user's right. Whenever you run a program, it inherit your access permission. So, if you create a program that opens and reads `/etc/shadow` \(which has read/write access restriction to the user `root` only\), your program won't have the permission to do so \(unless you are `root`\). However, if you manage to find and exploit a buffer overflow on an application running with higher privileges \(let say `root`\), you will be able to execute malicious code with those privilege \(e.g. read `/etc/shadow`\).
 
 One interesting feature of Linux is the SUID. Short for **S**et owner **U**ser **ID**, SUID is a special type of permissions given to a file. When defined, it gives temporary permissions to a user to run a program/file with the permissions of the file owner rather that the user who runs it. In simple words users will get file owner's permissions as well as owner UID and GID when executing a program \[[1](https://www.linux.com/blog/what-suid-and-how-set-suid-linuxunix)\]. So this means if the `root` user creates a program, set the permission so that anyone can execute it, then set the SUID, you will be able to run that program and the program will have root access permission. So, if you find a buffer overflow in that program, you will be able to execute code as `root`.
 
