@@ -66,7 +66,7 @@ When overwriting the **wallet** variable, we didn't have to write a specific val
 
 But then, why overwriting only the **wallet** you may ask? Why not also overwriting the **status** to be a moderator? 
 
-**Status** can only be `0x00000000` \(moderators\), `0x00000001` \(allies\) or `0x00000002` \(enemies\). What we can do is to overwrite the balance variable with four characters \(the size of an integer\) and stop there. The `NULL` string terminator character of the new name willl then overwrite the first byte of the status integer variable. Since the integers are stored in little-endian, overwriting the first byte will actually overwrite the least significant bit and thus would change the value to `0x00000000`.
+**Status** can only be `0x00000000` \(moderators\), `0x00000001` \(allies\) or `0x00000002` \(enemies\). What we can do is to overwrite the balance variable with four characters \(the size of an integer\) and stop there. The `NULL` string terminator character of the new name will then overwrite the first byte of the status integer variable. Since the integers are stored in little-endian, overwriting the first byte will actually overwrite the least significant bit and thus would change the value to `0x00000000`.
 
 Our new name: "Queen Daenerys Targaryen Stormbo~~~~"
 
@@ -92,7 +92,7 @@ Well, exploiting a buffer overflow might be interesting in several scenarios, bu
 
 In Linux, you are often limited to your own user's right. Whenever you run a program, it inherit your access permission. So, if you create a program that opens and reads `/etc/shadow` \(which has read/write access restriction to the user `root` only\), your program won't have the permission to do so \(unless you are `root`\). However, if you manage to find and exploit a buffer overflow on an application running with higher privileges \(let say `root`\), you will be able to execute malicious code with those privilege \(e.g. read `/etc/shadow`\).
 
-One interesting feature of Linux is the SUID. Short for **S**et owner **U**ser **ID**, SUID is a special type of permissions given to a file. When defined, it gives temporary permissions to a user to run a program/file with the permissions of the file owner rather that the user who runs it. In simple words users will get file owner's permissions as well as owner UID and GID when executing a program \[[1](https://www.linux.com/blog/what-suid-and-how-set-suid-linuxunix)\]. So this means if the `root` user creates a program, set the permission so that anyone can execute it, then set the SUID, you will be able to run that program and the program will have root access permission. So, if you find a buffer overflow in that program, you will be able to execute code as `root`.
+One interesting feature of Linux is the SUID. Short for **S**et owner **U**ser **ID**, SUID is a special type of permissions given to a file. When defined, it temporary elevate the permission of the user running the application to the permission of the owner of the application. In simple words users will get file owner's permissions as well as owner UID and GID when executing a program \[[1](https://www.linux.com/blog/what-suid-and-how-set-suid-linuxunix)\]. So this means if the `root` user \(1\) creates a program, \(2\) set the permission so that anyone can execute it, then \(3\) set the SUID, you will be able to run that program and the program will have root access permission. So, if you find a buffer overflow in that program, you will be able to execute code as `root`.
 
 {% hint style="info" %}
 This course didn't cover the Linux system and its permission so that's fine if this part is not clear to you.
@@ -100,7 +100,7 @@ This course didn't cover the Linux system and its permission so that's fine if t
 
 #### Remote access
 
-You have an application vulnerable to a buffer overflow running on a remote host that I don't have access to. That host has interesting information \(e.g. documents, mails, etc\) and/or resources \(e.g. network access to interesting asset\). The application is a service listening on the network for user inputs, e.g. a web server, DNS server, an online video game server, etc. The data received from the network is used by the function vulnerable to buffer overflow. An attacker could thus send a specifically crafted payload on the service via the network to exploit that vulnerability and execute its own code to gain remote code execution and control the server.
+Let say you have an application vulnerable to a buffer overflow running on a remote host that I don't have access to. That host has interesting information \(e.g. documents, mails, etc\) and/or resources \(e.g. network access to interesting asset\). The application is a service listening on the network for user inputs, e.g. a web server, DNS server, an online video game server, etc. The data received from the network is used by a function vulnerable to buffer overflow. An attacker could thus send a specifically crafted payload on the service via the network to exploit that vulnerability and execute its own code to gain remote code execution and control the server.
 
 #### Social engineering
 
