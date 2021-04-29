@@ -92,7 +92,7 @@ Well, exploiting a buffer overflow might be interesting in several scenarios, bu
 
 In Linux, you are often limited to your own user's right. Whenever you run a program, it inherit your access permission. So, if you create a program that opens and reads `/etc/shadow` \(which has read/write access restriction to the user `root` only\), your program won't have the permission to do so \(unless you are `root`\). However, if you manage to find and exploit a buffer overflow on an application running with higher privileges \(let say `root`\), you will be able to execute malicious code with those privilege \(e.g. read `/etc/shadow`\).
 
-One interesting feature of Linux is the SUID. Short for **S**et owner **U**ser **ID**, SUID is a special type of permissions given to a file. When defined, it temporary elevate the permission of the user running the application to the permission of the owner of the application. In simple words users will get file owner's permissions as well as owner UID and GID when executing a program \[[1](https://www.linux.com/blog/what-suid-and-how-set-suid-linuxunix)\]. So this means if the `root` user \(1\) creates a program, \(2\) set the permission so that anyone can execute it, then \(3\) set the SUID, you will be able to run that program and the program will have root access permission. So, if you find a buffer overflow in that program, you will be able to execute code as `root`.
+One interesting feature of Linux is the SUID. Short for **S**et owner **U**ser **ID**, SUID is a special type of permissions given to a file. When defined, it temporary elevate the permission of the user running the application to the permission of the owner of the application's file. In simple words users will get file owner's permissions as well as owner UID and GID when executing a program \[[1](https://www.linux.com/blog/what-suid-and-how-set-suid-linuxunix)\]. So this means if the `root` user \(1\) creates a program, \(2\) set the permission so that anyone can execute it, then \(3\) set the SUID, you will be able to run that program and the program will have root access permission. This means finding a buffer overflow in that program will grant you code execution as `root`.
 
 {% hint style="info" %}
 This course didn't cover the Linux system and its permission so that's fine if this part is not clear to you.
@@ -110,7 +110,7 @@ For this last example, let's consider a PDF reader vulnerable to buffer overflow
 
 In this chapter, we will see how to identify a buffer overflow and control the execution flow to execute a malicious code. We could also explain how to overwrite neighbour variables, but if you understand how to exploit a buffer overflow to redirect the execution, I'm sure you will know how to reuse the technique to overwrite other variables than the return address.
 
-Here is the source code of the application we will use to demonstrate the exploitation steps:
+Here is the source code of the application we will use to demonstrate the exploitation step by step:
 
 {% code title="login.c" %}
 ```c
@@ -152,7 +152,7 @@ $ gcc login.c -o login -fno-stack-protector -z execstack
 ```
 
 {% hint style="info" %}
-`gcc` is not going to be happy and will throw some warning because the function `gets` is dangerous. You can ignore the warning and proceed. Here we want to be vulnerable.
+`gcc` is not going to be happy and will \(rightfully\) throw some warning because the function `gets` is dangerous. You can ignore the warning and proceed. Here we want to be vulnerable.
 {% endhint %}
 
 Now you can test the application:
@@ -173,7 +173,7 @@ There are two main ways to identified a buffer overflow vulnerability. One is to
 
 #### Source code analysis
 
-Since this course is not meant to teach you reversing, we will assume that we have access to \(a copy\) of the compiled binary application and its source code \(in C\). The first step is to look at the source code for the following known functions prompt to buffer overflow: `gets`, `scanf`, `strcpy`, `strcat`, `sprintf`.
+Since this course is not meant to teach you reversing, we will assume that we have access to \(a copy\) of the compiled binary application and its source code \(in C\). The first step is to look at the source code for the following known functions prone to buffer overflow: `gets`, `scanf`, `strcpy`, `strcat`, `sprintf`.
 
 Each time you find any of these functions, \(1\) check if you control the input, \(2\) check if the destination where the result will be stored can hold that final string and finally, \(3\) check if there is any size restriction to prevent an overflow.
 
@@ -183,7 +183,7 @@ In our case, we can see that the function `gets` is used. `gets` doesn't restric
 
 Another way to identify a buffer overflow is to find area in the application taking user input, and for each of them, trying to send a very long string. This is a rather dummy but easy way to test for buffer overflow. Sometimes, in order to trigger a potential buffer overflow, you might need to send some input with a very specific format or size, so this technique is definitely not 100% accurate, but you might find a few vulnerabilities. You can automate this test in a more clever way by using a [fuzzer](https://www.mwrinfosecurity.com/our-thinking/15-minute-guide-to-fuzzing/), but this won't be cover in this course.
 
-So, here in this case, the application doesn't seem to take input from the program arguments \(`argc`\), however, it expects some user input when you run it after printing the message "Enter password: ".
+So, here in this case, the application doesn't seem to take input from the program arguments \(`argc`\), however, it expects some user input \(from `stdin`\) when you run it after printing the message "Enter password: ".
 
 ```text
 ./login
@@ -198,7 +198,7 @@ Segmentation fault (core dumped)
 
 The reason is because the **return address** has been overwritten with my long "AAAAA...", \(e.g. 50 $$×$$ "A"\) and therefore, at the end of the epilog, when executing the instruction `ret`, the CPU tries to jump at the address stored in what used to be the return address but is now `0x41414141` \(AAAA in ASCII\). `0x41414141` is not a valid address, hence the crash. 
 
-Let's validate this assumption with gdb:
+Let's validate this assumption with `gdb`:
 
 ```text
 $ gdb login -q
