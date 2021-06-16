@@ -181,7 +181,7 @@ In base 2, four binary values can represent a number from 0 to 15 \(decimal\), w
 | `0008` | `0008` |
 | `0009` | `0009` |
 
-So far, so good. While the base 10 will already increment the position before, we haven’t reached the 16th iteration in the hexadecimal system so we can keep incrementing the value at the 4th position. However, we don’t have a unique symbol to represent the number 10 \(we use the [Arabic numerals](https://en.wikipedia.org/wiki/Arabic_numerals)\), so we decided to re-use the Latin letter `a` \(could be uppercase or lowercase\), 11 is reprenseted as `a` , 12 is `b`, and so on, up to 15 being `f`.
+So far, so good. While the base 10 will already increment the position before, we haven’t reached the 16th iteration in the hexadecimal system so we can keep incrementing the value at the 4th position. However, we don’t have a unique symbol to represent the number 10 \(we use the [Arabic numerals](https://en.wikipedia.org/wiki/Arabic_numerals)\), so we decided to re-use the Latin letter `a` \(could be uppercase or lowercase\), 11 is represented as `b` , 12 is `c`, and so on, up to 15 being `f`.
 
 | Hexadecimal | Decimal |
 | :--- | :--- |
